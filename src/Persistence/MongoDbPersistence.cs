@@ -61,7 +61,7 @@ namespace PipServices.MongoDb.Persistence
             _options = _options.Override(config.GetSection("options"));
         }
 
-        public bool IsOpened()
+        public bool IsOpen()
         {
             return _collection != null;
         }

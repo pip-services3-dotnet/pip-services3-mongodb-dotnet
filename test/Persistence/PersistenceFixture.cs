@@ -222,7 +222,7 @@ namespace PipServices.MongoDb.Persistence
         {
             // arrange
             var dummy = await _persistence.CreateAsync(null, _dummy1);
-            var projection = ProjectionParams.FromValues("inner_dummy.description", "content", "key");
+            var projection = ProjectionParams.Parse("inner_dummy.description", "content", "key");
 
             // act
             dynamic result = await _persistence.GetOneByIdAsync(null, "wrong_id", projection);
@@ -235,7 +235,7 @@ namespace PipServices.MongoDb.Persistence
         {
             // arrange
             var dummy = await _persistence.CreateAsync(null, _dummy1);
-            var projection = ProjectionParams.FromValues("inner_dummy.description", "content", "key", "create_time_utc", "dummy_type");
+            var projection = ProjectionParams.Parse("inner_dummy.description", "content", "key", "create_time_utc", "dummy_type");
 
             // act
             dynamic result = await _persistence.GetOneByIdAsync(null, dummy.Id, projection);
@@ -253,7 +253,7 @@ namespace PipServices.MongoDb.Persistence
         {
             // arrange
             var dummy = await _persistence.CreateAsync(null, _dummy1);
-            var projection = ProjectionParams.FromValues("key", "inner_dummies(name, description)");
+            var projection = ProjectionParams.Parse("key", "inner_dummies(name, description)");
 
             // act
             dynamic result = await _persistence.GetOneByIdAsync(null, dummy.Id, projection);
@@ -269,7 +269,7 @@ namespace PipServices.MongoDb.Persistence
         {
             // arrange
             var dummy = await _persistence.CreateAsync(null, _dummy1);
-            var projection = ProjectionParams.FromValues("Wrong_Key", "Wrong_Content");
+            var projection = ProjectionParams.Parse("Wrong_Key", "Wrong_Content");
 
             // act
             dynamic result = await _persistence.GetOneByIdAsync(null, dummy.Id, projection);
@@ -309,7 +309,7 @@ namespace PipServices.MongoDb.Persistence
         {
             // arrange
             var dummy = await _persistence.CreateAsync(null, _dummy1);
-            var projection = ProjectionParams.FromValues("id");
+            var projection = ProjectionParams.Parse("id");
 
             // act
             dynamic result = await _persistence.GetOneByIdAsync(null, dummy.Id, projection);
@@ -345,7 +345,7 @@ namespace PipServices.MongoDb.Persistence
             var builder = Builders<Dummy>.Filter;
             var filter = builder.Empty;
 
-            var projection = ProjectionParams.FromValues("inner_dummy.description", "content", "key", "create_time_utc");
+            var projection = ProjectionParams.Parse("inner_dummy.description", "content", "key", "create_time_utc");
 
             // act
             dynamic result = await _persistence.GetPageByFilterAndProjectionAsync(null, filter, null, null, projection);
@@ -387,7 +387,7 @@ namespace PipServices.MongoDb.Persistence
             var builder = Builders<Dummy>.Filter;
             var filter = builder.Empty;
 
-            var projection = ProjectionParams.FromValues("Wrong_InnerDummy.Description", "Wrong_Content", "Wrong_Key");
+            var projection = ProjectionParams.Parse("Wrong_InnerDummy.Description", "Wrong_Content", "Wrong_Key");
 
             // act
             dynamic result = await _persistence.GetPageByFilterAndProjectionAsync(null, filter, null, null, projection);
