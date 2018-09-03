@@ -90,7 +90,11 @@ namespace PipServices.MongoDb.Persistence
         }
 
         public Task CloseAsync(string correlationId)
-        {
+        {            
+            // Todo: Properly close the connection
+            _connection = null;
+            _database = null;
+            _collection = null;
             return Task.Delay(0);
         }
 
