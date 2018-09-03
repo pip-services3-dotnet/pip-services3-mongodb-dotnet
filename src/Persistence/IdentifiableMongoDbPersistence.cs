@@ -320,6 +320,8 @@ namespace PipServices.MongoDb.Persistence
 
         #region Overridable Compose Methods
 
+        // !! Hack, Remove !!
+
         protected virtual FilterDefinition<T> ComposeFilter(FilterParams filterParams)
         {
             filterParams = filterParams ?? new FilterParams();
@@ -356,10 +358,6 @@ namespace PipServices.MongoDb.Persistence
             return builder.Combine(updateDefinitions);
         }
 
-        #endregion
-
-        #region Helper Methods
-
         protected virtual ProjectionDefinition<T> CreateProjectionDefinition(ProjectionParams projection, ProjectionDefinitionBuilder<T> projectionBuilder)
         {
             projection = projection ?? new ProjectionParams();
@@ -367,6 +365,11 @@ namespace PipServices.MongoDb.Persistence
             return projectionBuilder.Combine(projection.Select(field => projectionBuilder.Include(field))).Exclude(InternalIdFieldName);
         }
 
+        #endregion
+
+        #region Helper Methods
+
+        // !! Hack, Remove !!
         protected static TT[] ToArrayOfType<TT>(string value)
         {
             if (value == null)
