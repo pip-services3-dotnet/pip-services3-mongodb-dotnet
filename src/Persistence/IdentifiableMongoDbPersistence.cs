@@ -47,7 +47,7 @@ namespace PipServices.MongoDb.Persistence
             var skip = paging.GetSkip(0);
             var take = paging.GetTake(_maxPageSize);
 
-            var count = paging.Total ? (long?)await query.CountAsync() : null;
+            var count = paging.Total ? (long?)await query.CountDocumentsAsync() : null;
             var items = await query.Skip((int)skip).Limit((int)take).ToListAsync();
 
             _logger.Trace(correlationId, $"Retrieved {items.Count} from {_collection}");
@@ -78,7 +78,7 @@ namespace PipServices.MongoDb.Persistence
             var skip = paging.GetSkip(0);
             var take = paging.GetTake(_maxPageSize);
 
-            var count = paging.Total ? (long?)await query.CountAsync() : null;
+            var count = paging.Total ? (long?)await query.CountDocumentsAsync() : null;
             var items = await query.Project(projectionDefinition).Skip((int)skip).Limit((int)take).ToListAsync();
 
             var result = new DataPage<object>()
@@ -189,7 +189,7 @@ namespace PipServices.MongoDb.Persistence
             var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<T>();
             var renderedFilter = filterDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
 
-            var count = (int)_collection.Count(renderedFilter);
+            var count = (int)_collection.CountDocuments(renderedFilter);
 
             if (count <= 0)
             {
@@ -320,8 +320,6 @@ namespace PipServices.MongoDb.Persistence
 
         #region Overridable Compose Methods
 
-        // !! Hack, Remove !!
-
         protected virtual FilterDefinition<T> ComposeFilter(FilterParams filterParams)
         {
             filterParams = filterParams ?? new FilterParams();
@@ -331,12 +329,6 @@ namespace PipServices.MongoDb.Persistence
 
             foreach (var filterKey in filterParams.Keys)
             {
-                if (filterKey.Equals("ids"))
-                {
-                    filter &= builder.In(s => s.Id, ToArrayOfType<K>(filterParams.GetAsNullableString("ids")));
-                    continue;
-                }
-
                 filter &= builder.Eq(filterKey, filterParams[filterKey]);
             }
 
@@ -358,27 +350,21 @@ namespace PipServices.MongoDb.Persistence
             return builder.Combine(updateDefinitions);
         }
 
+        protected virtual SortDefinition<T> ComposeSort(SortParams sortParams)
+        {
+            sortParams = sortParams ?? new SortParams();
+
+            var builder = Builders<T>.Sort;
+
+            return builder.Combine(sortParams.Select(field => field.Ascending ?
+                builder.Ascending(field.Name) : builder.Descending(field.Name)));
+        }
+
         protected virtual ProjectionDefinition<T> CreateProjectionDefinition(ProjectionParams projection, ProjectionDefinitionBuilder<T> projectionBuilder)
         {
             projection = projection ?? new ProjectionParams();
 
             return projectionBuilder.Combine(projection.Select(field => projectionBuilder.Include(field))).Exclude(InternalIdFieldName);
-        }
-
-        #endregion
-
-        #region Helper Methods
-
-        // !! Hack, Remove !!
-        protected static TT[] ToArrayOfType<TT>(string value)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-
-            var items = value.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries) as TT[];
-            return (items != null && items.Length > 0) ? items : null;
         }
 
         #endregion

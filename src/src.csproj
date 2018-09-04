@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -6,7 +6,7 @@
     <RootNamespace>PipServices.MongoDb</RootNamespace>
     <ApplicationIcon />
     <Win32Resource />
-    <Version>3.0.1</Version>
+    <Version>3.0.2</Version>
     <Authors>Sergey Seroukhov, Alex Mazur</Authors>
     <Copyright>Conceptual Vision Consulting LLC. 2017-2018</Copyright>
     <Description>MongoDB components for Pip.Services in .NET</Description>
@@ -30,8 +30,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MongoDB.Driver" Version="2.7.0" />
-    <PackageReference Include="PipServices.Commons" Version="3.0.2" />
-    <PackageReference Include="PipServices.Components" Version="3.0.2" />
+    <PackageReference Include="PipServices.Commons" Version="3.0.4" />
+    <PackageReference Include="PipServices.Components" Version="3.0.3" />
     <PackageReference Include="PipServices.Data" Version="3.0.1" />
   </ItemGroup>
 </Project>

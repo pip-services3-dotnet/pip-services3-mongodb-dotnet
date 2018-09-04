@@ -116,6 +116,12 @@ namespace PipServices.MongoDb.Persistence
         }
 
         [Fact]
+        public void It_Should_Modify_Object_With_Existing_Properties_By_Selected_Not_Changed_Fields()
+        {
+            Fixture?.TestModifyExistingPropertiesBySelectedNotChangedFields().Wait();
+        }
+
+        [Fact]
         public void It_Should_Modify_Object_With_Null_Properties_By_Selected_Fields()
         {
             Fixture?.TestModifyExistingPropertiesBySelectedFields().Wait();
@@ -161,6 +167,36 @@ namespace PipServices.MongoDb.Persistence
         public void It_Should_Get_Page_By_Ids_Filter()
         {
             Fixture?.TestGetPageByIdsFilter().Wait();
+        }
+
+        [Fact]
+        public void It_Should_Get_Page_By_Array_Of_Keys_Filter()
+        {
+            Fixture?.TestGetPageByArrayOfKeysFilter().Wait();
+        }
+
+        [Fact]
+        public void It_Should_Get_Page_Sorted_By_One_Field()
+        {
+            Fixture?.TestGetPageSortedByOneField().Wait();
+        }
+
+        [Fact]
+        public void It_Should_Get_Sales_Orders_Sorted_By_Multiple_Fields()
+        {
+            Fixture?.TestGetPageSortedByMultipleFields().Wait();
+        }
+
+        [Fact]
+        public void It_Should_Get_Sales_Orders_By_Projection_And_Sorted_By_One_Field()
+        {
+            Fixture?.TestGetPageByProjectionAndSortedByOneField().Wait();
+        }
+
+        [Fact]
+        public void It_Should_Get_Sales_Orders_By_Projection_And_Sorted_By_Multiple_Fields()
+        {
+            Fixture?.TestGetPageByProjectionAndSortedByMultipleFields().Wait();
         }
 
         public void Dispose()

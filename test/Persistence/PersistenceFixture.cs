@@ -222,7 +222,7 @@ namespace PipServices.MongoDb.Persistence
         {
             // arrange
             var dummy = await _persistence.CreateAsync(null, _dummy1);
-            var projection = ProjectionParams.Parse("inner_dummy.description", "content", "key");
+            var projection = ProjectionParams.FromValues("inner_dummy.description", "content", "key");
 
             // act
             dynamic result = await _persistence.GetOneByIdAsync(null, "wrong_id", projection);
@@ -235,7 +235,7 @@ namespace PipServices.MongoDb.Persistence
         {
             // arrange
             var dummy = await _persistence.CreateAsync(null, _dummy1);
-            var projection = ProjectionParams.Parse("inner_dummy.description", "content", "key", "create_time_utc", "dummy_type");
+            var projection = ProjectionParams.FromValues("inner_dummy.description", "content", "key", "create_time_utc", "dummy_type");
 
             // act
             dynamic result = await _persistence.GetOneByIdAsync(null, dummy.Id, projection);
@@ -253,7 +253,7 @@ namespace PipServices.MongoDb.Persistence
         {
             // arrange
             var dummy = await _persistence.CreateAsync(null, _dummy1);
-            var projection = ProjectionParams.Parse("key", "inner_dummies(name, description)");
+            var projection = ProjectionParams.FromValues("key", "inner_dummies(name, description)");
 
             // act
             dynamic result = await _persistence.GetOneByIdAsync(null, dummy.Id, projection);
@@ -269,7 +269,7 @@ namespace PipServices.MongoDb.Persistence
         {
             // arrange
             var dummy = await _persistence.CreateAsync(null, _dummy1);
-            var projection = ProjectionParams.Parse("Wrong_Key", "Wrong_Content");
+            var projection = ProjectionParams.FromValues("Wrong_Key", "Wrong_Content");
 
             // act
             dynamic result = await _persistence.GetOneByIdAsync(null, dummy.Id, projection);
@@ -309,7 +309,7 @@ namespace PipServices.MongoDb.Persistence
         {
             // arrange
             var dummy = await _persistence.CreateAsync(null, _dummy1);
-            var projection = ProjectionParams.Parse("id");
+            var projection = ProjectionParams.FromValues("id");
 
             // act
             dynamic result = await _persistence.GetOneByIdAsync(null, dummy.Id, projection);
@@ -345,7 +345,7 @@ namespace PipServices.MongoDb.Persistence
             var builder = Builders<Dummy>.Filter;
             var filter = builder.Empty;
 
-            var projection = ProjectionParams.Parse("inner_dummy.description", "content", "key", "create_time_utc");
+            var projection = ProjectionParams.FromValues("inner_dummy.description", "content", "key", "create_time_utc");
 
             // act
             dynamic result = await _persistence.GetPageByFilterAndProjectionAsync(null, filter, null, null, projection);
@@ -387,7 +387,7 @@ namespace PipServices.MongoDb.Persistence
             var builder = Builders<Dummy>.Filter;
             var filter = builder.Empty;
 
-            var projection = ProjectionParams.Parse("Wrong_InnerDummy.Description", "Wrong_Content", "Wrong_Key");
+            var projection = ProjectionParams.FromValues("Wrong_InnerDummy.Description", "Wrong_Content", "Wrong_Key");
 
             // act
             dynamic result = await _persistence.GetPageByFilterAndProjectionAsync(null, filter, null, null, projection);
@@ -416,6 +416,28 @@ namespace PipServices.MongoDb.Persistence
             Assert.Equal(dummy.Id, result.Id);
             Assert.Equal("Modified Content", result.Content);
             Assert.Equal("Modified InnerDummy Description", result.InnerDummy.Description);
+        }
+
+        public async Task TestModifyExistingPropertiesBySelectedNotChangedFields()
+        {
+            // arrange 
+            var dummy = await _persistence.CreateAsync(null, _dummy1);
+
+            // no changes
+            var updateMap = new AnyValueMap()
+            {
+                { "Content", dummy.Content },
+                { "InnerDummy.Description", dummy.InnerDummy.Description }
+            };
+
+            // act
+            var result = await _persistence.ModifyByIdAsync(null, dummy.Id, ComposeUpdate(updateMap));
+
+            // assert
+            Assert.NotNull(result);
+            Assert.Equal(dummy.Id, result.Id);
+            Assert.Equal(dummy.Content, result.Content);
+            Assert.Equal(dummy.InnerDummy.Description, result.InnerDummy.Description);
         }
 
         public async Task TestModifyNullPropertiesBySelectedFields()
@@ -592,6 +614,148 @@ namespace PipServices.MongoDb.Persistence
             // assert
             Assert.NotNull(result);
             Assert.Single(result.Data);
+        }
+
+        public async Task TestGetPageByArrayOfKeysFilter()
+        {
+            // arrange 
+            var dummy1 = await _persistence.CreateAsync(null, _dummy1);
+            var dummy2 = await _persistence.CreateAsync(null, _dummy2);
+            var dummy3 = await _persistence.CreateAsync(null, _dummy3);
+
+            var filter = FilterParams.FromTuples(
+                "key", $"{dummy1.Key},{dummy2.Key}"
+            );
+
+            // act
+            var result = await _persistence.GetAsync(null, filter, null, null);
+
+            // assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Data.Count);
+
+            Assert.Equal(dummy1.Key, result.Data[0].Key);
+            Assert.Equal(dummy2.Key, result.Data[1].Key);
+        }
+
+        public async Task TestGetPageSortedByOneField()
+        {
+            // arrange 
+            var dummy1 = await _persistence.CreateAsync(null, _dummy1);
+            var dummy2 = await _persistence.CreateAsync(null, _dummy2);
+            var dummy3 = await _persistence.CreateAsync(null, _dummy3);
+
+            // keys: Key 1, Key 2, Key 3
+
+            var sortParams = new SortParams()
+            {
+                new SortField("key", false)
+            };
+
+            // result -> 3 (Key 3), 2 (Key 2), 1 (Key 1)
+
+            // act
+            var result = await _persistence.GetAsync(null, null, null, sortParams);
+
+            // assert
+            Assert.NotNull(result);
+            Assert.Equal(3, result.Data.Count);
+
+            Assert.Equal(dummy3.Key, result.Data[0].Key);
+            Assert.Equal(dummy2.Key, result.Data[1].Key);
+            Assert.Equal(dummy1.Key, result.Data[2].Key);
+        }
+
+        public async Task TestGetPageSortedByMultipleFields()
+        {
+            // arrange 
+            var dummy1 = await _persistence.CreateAsync(null, _dummy1);
+            var dummy2 = await _persistence.CreateAsync(null, _dummy2);
+            var dummy3 = await _persistence.CreateAsync(null, _dummy3);
+
+            // keys: Key 1, Key 2, Key 3
+            // dummy_type: not_dummy, dummy, dummy
+
+            var sortParams = new SortParams()
+            {
+                new SortField("dummy_type", false),
+                new SortField("key", false)
+            };
+
+            // result -> 1 (not dummy, Key 1), 3 (dummy, Key 3), 2 (dummy, Key 2)
+
+            // act
+            var result = await _persistence.GetAsync(null, null, null, sortParams);
+
+            // assert
+            Assert.NotNull(result);
+            Assert.Equal(3, result.Data.Count);
+
+            Assert.Equal(dummy1.Key, result.Data[0].Key);
+            Assert.Equal(dummy3.Key, result.Data[1].Key);
+            Assert.Equal(dummy2.Key, result.Data[2].Key);
+        }
+
+        public async Task TestGetPageByProjectionAndSortedByOneField()
+        {
+            // arrange 
+            var dummy1 = await _persistence.CreateAsync(null, _dummy1);
+            var dummy2 = await _persistence.CreateAsync(null, _dummy2);
+            var dummy3 = await _persistence.CreateAsync(null, _dummy3);
+
+            // keys: Key 1, Key 2, Key 3
+
+            var sortParams = new SortParams()
+            {
+                new SortField("key", false)
+            };
+
+            // result -> 3 (Key 3), 2 (Key 2), 1 (Key 1)
+
+            var projection = ProjectionParams.FromValues("key");
+
+            // act
+            dynamic result = await _persistence.GetAsync(null, null, null, sortParams, projection);
+
+            // assert
+            Assert.NotNull(result);
+            Assert.Equal(3, result.Data.Count);
+
+            Assert.Equal(dummy3.Key, result.Data[0].key);
+            Assert.Equal(dummy2.Key, result.Data[1].key);
+            Assert.Equal(dummy1.Key, result.Data[2].key);
+        }
+
+        public async Task TestGetPageByProjectionAndSortedByMultipleFields()
+        {
+            // arrange 
+            var dummy1 = await _persistence.CreateAsync(null, _dummy1);
+            var dummy2 = await _persistence.CreateAsync(null, _dummy2);
+            var dummy3 = await _persistence.CreateAsync(null, _dummy3);
+
+            // keys: Key 1, Key 2, Key 3
+            // dummy_type: not_dummy, dummy, dummy
+
+            var sortParams = new SortParams()
+            {
+                new SortField("dummy_type", false),
+                new SortField("key", false)
+            };
+
+            // result -> 1 (not dummy, Key 1), 3 (dummy, Key 3), 2 (dummy, Key 2)
+
+            var projection = ProjectionParams.FromValues("key");
+
+            // act
+            dynamic result = await _persistence.GetAsync(null, null, null, sortParams, projection);
+
+            // assert
+            Assert.NotNull(result);
+            Assert.Equal(3, result.Data.Count);
+
+            Assert.Equal(dummy1.Key, result.Data[0].key);
+            Assert.Equal(dummy3.Key, result.Data[1].key);
+            Assert.Equal(dummy2.Key, result.Data[2].key);
         }
 
         private async Task AssertDelete(Dummy dummy)

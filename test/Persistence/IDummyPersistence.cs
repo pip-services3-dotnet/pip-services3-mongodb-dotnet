@@ -13,8 +13,8 @@ namespace PipServices.MongoDb.Persistence
         Task<Dummy> DeleteAsync(string correlationId, string id);
         Task<Dummy> GetByIdAsync(string correlationId, string id);
         Task<object> GetByIdAsync(string correlationId, string id, ProjectionParams projection);
-        Task<DataPage<Dummy>> GetAsync(string correlationId, FilterParams filter, PagingParams paging);
-        Task<DataPage<object>> GetAsync(string correlationId, FilterParams filter, PagingParams paging, ProjectionParams projection);
+        Task<DataPage<Dummy>> GetAsync(string correlationId, FilterParams filter, PagingParams paging, SortParams sort);
+        Task<DataPage<object>> GetAsync(string correlationId, FilterParams filter, PagingParams paging, SortParams sort, ProjectionParams projection);
         Task ClearAsync();
 
         Task<Dummy> CreateAsync(string correlationId, Dummy item);
