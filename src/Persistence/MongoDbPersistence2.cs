@@ -10,7 +10,7 @@ using PipServices.MongoDb.Connect;
 
 namespace PipServices.MongoDb.Persistence
 {
-    public class MongoDbPersistence<T> : IReferenceable, IReconfigurable, IOpenable, ICleanable
+    public class MongoDbPersistence2<T> : IReferenceable, IReconfigurable, IOpenable, ICleanable
     {
         private ConfigParams _defaultConfig = ConfigParams.FromTuples(
             //"connection.type", "mongodb",
@@ -36,7 +36,7 @@ namespace PipServices.MongoDb.Persistence
 
         protected CompositeLogger _logger = new CompositeLogger();
 
-        public MongoDbPersistence(string collectionName)
+        public MongoDbPersistence2(string collectionName)
         {
             if (string.IsNullOrWhiteSpace(collectionName))
                 throw new ArgumentNullException(nameof(collectionName));
