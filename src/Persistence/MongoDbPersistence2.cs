@@ -5,9 +5,8 @@ using PipServices.Commons.Config;
 using PipServices.Commons.Errors;
 using PipServices.Commons.Refer;
 using PipServices.Commons.Run;
-using PipServices.Components.Auth;
-using PipServices.Components.Connect;
 using PipServices.Components.Log;
+using PipServices.MongoDb.Connect;
 
 namespace PipServices.MongoDb.Persistence
 {
@@ -19,17 +18,16 @@ namespace PipServices.MongoDb.Persistence
             //"connection.host", "localhost",
             //"connection.port", 27017,
 
-            "options.poll_size", 4,
-            "options.keep_alive", 1,
-            "options.connect_timeout", 5000,
-            "options.auto_reconnect", true,
-            "options.max_page_size", 100,
-            "options.debug", true
+            //"options.poll_size", 4,
+            //"options.keep_alive", 1,
+            //"options.connect_timeout", 5000,
+            //"options.auto_reconnect", true,
+            //"options.max_page_size", 100,
+            //"options.debug", true
         );
 
         protected string _collectionName;
-        protected ConnectionResolver _connectionResolver = new ConnectionResolver();
-        protected CredentialResolver _credentialResolver = new CredentialResolver();
+        protected MongoDbConnectionResolver _connectionResolver = new MongoDbConnectionResolver();
         protected ConfigParams _options = new ConfigParams();
 
         protected MongoClient _connection;
@@ -50,87 +48,34 @@ namespace PipServices.MongoDb.Persistence
         {
             _logger.SetReferences(references);
             _connectionResolver.SetReferences(references);
-            _credentialResolver.SetReferences(references);
         }
 
         public virtual void Configure(ConfigParams config)
         {
             config = config.SetDefaults(_defaultConfig);
 
-            _connectionResolver.Configure(config, true);
-            _credentialResolver.Configure(config, true);
+            _connectionResolver.Configure(config);
 
             _collectionName = config.GetAsStringWithDefault("collection", _collectionName);
 
             _options = _options.Override(config.GetSection("options"));
         }
 
-        public bool IsOpen()
+        public virtual bool IsOpen()
         {
             return _collection != null;
         }
 
         public async virtual Task OpenAsync(string correlationId)
         {
-            var connection = await _connectionResolver.ResolveAsync(correlationId);
-            var credential = await _credentialResolver.LookupAsync(correlationId);
-            await OpenAsync(correlationId, connection, credential);
-        }
+            var uri = await _connectionResolver.ResolveAsync(correlationId);
 
-        public async Task OpenAsync(string correlationId, ConnectionParams connection, CredentialParams credential)
-        {
-            if (connection == null)
-                throw new ConfigException(correlationId, "NO_CONNECTION", "Database connection is not set");
-
-            var uri = connection.Uri;
-            var host = connection.Host;
-            var port = connection.Port;
-            var databaseName = connection.GetAsNullableString("database");
-
-            if (uri != null)
-            {
-                databaseName = MongoUrl.Create(uri).DatabaseName;
-            }
-            else
-            {
-                if (host == null)
-                    throw new ConfigException(correlationId, "NO_HOST", "Connection host is not set");
-
-                if (port == 0)
-                    throw new ConfigException(correlationId, "NO_PORT", "Connection port is not set");
-
-                if (databaseName == null)
-                    throw new ConfigException(correlationId, "NO_DATABASE", "Connection database is not set");
-            }
-
-            _logger.Trace(correlationId, "Connecting to mongodb database {0}, collection {1}", databaseName, _collectionName);
+            _logger.Trace(correlationId, "Connecting to mongodb");
 
             try
             {
-                if (uri != null)
-                {
-                    _connection = new MongoClient(uri);
-                }
-                else
-                {
-                    var settings = new MongoClientSettings
-                    {
-                        Server = new MongoServerAddress(host, port),
-                        MaxConnectionPoolSize = _options.GetAsInteger("poll_size"),
-                        ConnectTimeout = _options.GetAsTimeSpan("connect_timeout"),
-                        //SocketTimeout =
-                        //    new TimeSpan(options.GetInteger("server.socketOptions.socketTimeoutMS")*
-                        //                 TimeSpan.TicksPerMillisecond)
-                    };
-
-                    if (credential.Username != null)
-                    {
-                        settings.Credential = MongoCredential.CreateCredential(databaseName, credential.Username, credential.Password);
-                      }
-
-                    _connection = new MongoClient(settings);
-                }
-
+                _connection = new MongoClient(uri);
+                var databaseName = MongoUrl.Create(uri).DatabaseName;
                 _database = _connection.GetDatabase(databaseName);
                 _collection = _database.GetCollection<T>(_collectionName);
 
@@ -144,14 +89,19 @@ namespace PipServices.MongoDb.Persistence
             await Task.Delay(0);
         }
 
-        public Task CloseAsync(string correlationId)
-        {
-            return Task.Delay(0);
+        public async virtual Task CloseAsync(string correlationId)
+        {            
+            // Todo: Properly close the connection
+            _connection = null;
+            _database = null;
+            _collection = null;
+
+            await Task.Delay(0);
         }
 
-        public Task ClearAsync(string correlationId)
+        public virtual async Task ClearAsync(string correlationId)
         {
-            return _database.DropCollectionAsync(_collectionName);
+            await _database.DropCollectionAsync(_collectionName);
         }
     }
 }
