@@ -14,6 +14,89 @@ using PipServices.Data;
 
 namespace PipServices.MongoDb.Persistence
 {
+    /// <summary>
+    /// Abstract persistence component that stores data in MongoDB
+    /// and implements a number of CRUD operations over data items with unique ids.
+    /// The data items must implement IIdentifiable interface.
+    /// 
+    /// In basic scenarios child classes shall only override getPageByFilter(),
+    /// getListByFilter() or deleteByFilter() operations with specific filter function.
+    /// All other operations can be used out of the box.
+    /// 
+    /// In complex scenarios child classes can implement additional operations by
+    /// accessing this._collection and this._model properties.
+    /// 
+    /// ### Configuration parameters ###
+    /// 
+    /// collection:                  (optional) MongoDB collection name
+    /// connection(s):    
+    /// discovery_key:             (optional) a key to retrieve the connection from IDiscovery
+    /// host:                      host name or IP address
+    /// port:                      port number (default: 27017)
+    /// uri:                       resource URI or connection string with all parameters in it
+    /// credential(s):    
+    /// store_key:                 (optional) a key to retrieve the credentials from ICredentialStore
+    /// username:                  (optional) user name
+    /// password:                  (optional) user password
+    /// options:
+    /// max_pool_size:             (optional) maximum connection pool size (default: 2)
+    /// keep_alive:                (optional) enable connection keep alive (default: true)
+    /// connect_timeout:           (optional) connection timeout in milliseconds (default: 5 sec)
+    /// auto_reconnect:            (optional) enable auto reconnection (default: true)
+    /// max_page_size:             (optional) maximum page size (default: 100)
+    /// debug:                     (optional) enable debug output (default: false).
+    /// 
+    /// ### References ###
+    /// 
+    /// - *:logger:*:*:1.0           (optional) ILogger components to pass log messages
+    /// - *:discovery:*:*:1.0        (optional) IDiscovery services
+    /// - *:credential-store:*:*:1.0 (optional) Credential stores to resolve credentials
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="K"></typeparam>
+    /// <example>
+    /// <code>
+    /// class MyMongoDbPersistence: MongoDbPersistence<MyData, string> 
+    /// {
+    ///     public constructor()
+    ///     {
+    ///         base("mydata", MyData.class);
+    ///     }
+    /// 
+    ///     private FilterDefinition<MyData> ComposeFilter(FilterParams filter)
+    ///     {
+    ///         filterParams = filterParams ?? new FilterParams();
+    ///         var builder = Builders<BeaconV1>.Filter;
+    ///         var filter = builder.Empty;
+    ///         String name = filter.getAsNullableString('name');
+    ///         if (name != null)
+    ///             filter &= builder.Eq(b => b.Name, name);
+    ///         return filter;
+    ///     }
+    ///     
+    ///     public GetPageByFilter(String correlationId, FilterParams filter, PagingParams paging)
+    ///     {
+    ///         base.GetPageByFilter(correlationId, this.ComposeFilter(filter), paging, null, null);
+    ///     }
+    /// }
+    /// 
+    /// var persistence = new MyMongoDbPersistence();
+    /// persistence.Configure(ConfigParams.fromTuples(
+    /// "host", "localhost",
+    /// "port", 27017 ));
+    /// 
+    /// persitence.Open("123");
+    /// 
+    /// persistence.Create("123", new MyData("1", "ABC"));
+    /// var mydata = persistence.GetPageByFilter(
+    /// "123",
+    /// FilterParams.FromTuples("name", "ABC"),
+    /// Console.Out.WriteLine(mydata.Data);          // Result: { id: "1", name: "ABC" }
+    /// 
+    /// persistence.DeleteById("123", "1");
+    /// ...
+    /// </code>
+    /// </example>
     public class IdentifiableMongoDbPersistence<T, K> : MongoDbPersistence<T>, IWriter<T, K>, IGetter<T, K>, ISetter<T>
         where T : IIdentifiable<K>
         where K : class
@@ -22,10 +105,18 @@ namespace PipServices.MongoDb.Persistence
 
         protected const string InternalIdFieldName = "_id";
 
+        /// <summary>
+        /// Creates a new instance of the persistence component.
+        /// </summary>
+        /// <param name="collectionName">(optional) a collection name.</param>
         public IdentifiableMongoDbPersistence(string collectionName)
             : base(collectionName)
         { }
 
+        /// <summary>
+        /// Configures component by passing configuration parameters.
+        /// </summary>
+        /// <param name="config">configuration parameters to be set.</param>
         public override void Configure(ConfigParams config)
         {
             base.Configure(config);
@@ -33,6 +124,17 @@ namespace PipServices.MongoDb.Persistence
             _maxPageSize = config.GetAsIntegerWithDefault("options.max_page_size", _maxPageSize);
         }
 
+        /// <summary>
+        /// Gets a page of data items retrieved by a given filter and sorted according to sort parameters.
+        /// 
+        /// This method shall be called by a public getPageByFilter method from child
+        /// class that receives FilterParams and converts them into a filter function.
+        /// </summary>
+        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
+        /// <param name="filterDefinition">(optional) a filter JSON object</param>
+        /// <param name="paging">(optional) paging parameters</param>
+        /// <param name="sortDefinition">(optional) sorting JSON object</param>
+        /// <returns>data page of results by filter.</returns>
         public virtual async Task<DataPage<T>> GetPageByFilterAsync(string correlationId, FilterDefinition<T> filterDefinition,
             PagingParams paging = null, SortDefinition<T> sortDefinition = null)
         {
@@ -59,6 +161,18 @@ namespace PipServices.MongoDb.Persistence
             };
         }
 
+        /// <summary>
+        /// Gets a page of data items retrieved by a given filter and sorted according to sort parameters.
+        /// 
+        /// This method shall be called by a public getPageByFilter method from child
+        /// class that receives FilterParams and converts them into a filter function.
+        /// </summary>
+        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
+        /// <param name="filterDefinition">(optional) a filter JSON object</param>
+        /// <param name="paging">(optional) paging parameters</param>
+        /// <param name="sortDefinition">(optional) sorting JSON object</param>
+        /// <param name="projection">(optional) projection parameters</param>
+        /// <returns>data page of results by filter.</returns>
         public virtual async Task<DataPage<object>> GetPageByFilterAndProjectionAsync(string correlationId, FilterDefinition<T> filterDefinition,
             PagingParams paging = null, SortDefinition<T> sortDefinition = null, ProjectionParams projection = null)
         {
@@ -106,6 +220,16 @@ namespace PipServices.MongoDb.Persistence
             return result;
         }
 
+        /// <summary>
+        /// Gets a list of data items retrieved by a given filter and sorted according to sort parameters.
+        /// 
+        /// This method shall be called by a public getListByFilter method from child
+        /// class that receives FilterParams and converts them into a filter function.
+        /// </summary>
+        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
+        /// <param name="filterDefinition">(optional) a filter JSON object</param>
+        /// <param name="sortDefinition">(optional) sorting JSON object</param>
+        /// <returns></returns>
         public virtual async Task<List<T>> GetListByFilterAsync(string correlationId, FilterDefinition<T> filterDefinition,
             SortDefinition<T> sortDefinition = null)
         {
@@ -123,6 +247,12 @@ namespace PipServices.MongoDb.Persistence
             return items;
         }
 
+        /// <summary>
+        /// Gets a list of data items retrieved by given unique ids.
+        /// </summary>
+        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
+        /// <param name="ids">ids of data items to be retrieved</param>
+        /// <returns>a data list of results by ids.</returns>
         public virtual async Task<List<T>> GetListByIdsAsync(string correlationId, K[] ids)
         {
             
@@ -139,7 +269,12 @@ namespace PipServices.MongoDb.Persistence
             return items;
         }
 
-
+        /// <summary>
+        /// Gets a data item by its unique id.
+        /// </summary>
+        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
+        /// <param name="id">an id of data item to be retrieved.</param>
+        /// <returns>a data item by id.</returns>
         public virtual async Task<T> GetOneByIdAsync(string correlationId, K id)
         {
             var builder = Builders<T>.Filter;
@@ -157,6 +292,13 @@ namespace PipServices.MongoDb.Persistence
             return result;
         }
 
+        /// <summary>
+        /// Gets a data item by its unique id.
+        /// </summary>
+        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
+        /// <param name="id">an id of data item to be retrieved.</param>
+        /// <param name="projection">(optional) projection parameters.</param>
+        /// <returns>a data item by id.</returns>
         public virtual async Task<object> GetOneByIdAsync(string correlationId, K id, ProjectionParams projection)
         {
             var builder = Builders<T>.Filter;
@@ -184,6 +326,15 @@ namespace PipServices.MongoDb.Persistence
             return BsonSerializer.Deserialize<object>(result);
         }
 
+        /// <summary>
+        /// Gets a random item from items that match to a given filter.
+        /// 
+        /// This method shall be called by a public getOneRandom method from child class
+        /// that receives FilterParams and converts them into a filter function.
+        /// </summary>
+        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
+        /// <param name="filterDefinition">(optional) a filter JSON object</param>
+        /// <returns>a random item by filter.</returns>
         public virtual async Task<T> GetOneRandomAsync(string correlationId, FilterDefinition<T> filterDefinition)
         {
             var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<T>();
@@ -206,6 +357,12 @@ namespace PipServices.MongoDb.Persistence
             return result;
         }
 
+        /// <summary>
+        /// Creates a data item.
+        /// </summary>
+        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
+        /// <param name="item">an item to be created.</param>
+        /// <returns>created item.</returns>
         public virtual async Task<T> CreateAsync(string correlationId, T item)
         {
             var identifiable = item as IStringIdentifiable;
@@ -219,6 +376,12 @@ namespace PipServices.MongoDb.Persistence
             return item;
         }
 
+        /// <summary>
+        /// Sets a data item. If the data item exists it updates it, otherwise it create a new data item.
+        /// </summary>
+        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
+        /// <param name="item">an item to be set.</param>
+        /// <returns>updated item.</returns>
         public virtual async Task<T> SetAsync(string correlationId, T item)
         {
             var identifiable = item as IIdentifiable<K>;
@@ -238,6 +401,12 @@ namespace PipServices.MongoDb.Persistence
             return result;
         }
 
+        /// <summary>
+        /// Updates a data item.
+        /// </summary>
+        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
+        /// <param name="item">an item to be updated.</param>
+        /// <returns>updated item.</returns>
         public virtual async Task<T> UpdateAsync(string correlationId, T item)
         {
             var identifiable = item as IIdentifiable<K>;
@@ -292,6 +461,12 @@ namespace PipServices.MongoDb.Persistence
             return result;
         }
 
+        /// <summary>
+        /// Deleted a data item by it's unique id.
+        /// </summary>
+        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
+        /// <param name="id">an id of the item to be deleted</param>
+        /// <returns>deleted item.</returns>
         public virtual async Task<T> DeleteByIdAsync(string correlationId, K id)
         {
             var filter = Builders<T>.Filter.Eq(x => x.Id, id);
@@ -303,6 +478,14 @@ namespace PipServices.MongoDb.Persistence
             return result;
         }
 
+        /// <summary>
+        /// Deletes data items that match to a given filter.
+        /// 
+        /// This method shall be called by a public deleteByFilter method from child
+        /// class that receives FilterParams and converts them into a filter function.
+        /// </summary>
+        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
+        /// <param name="filterDefinition">(optional) a filter JSON object.</param>
         public virtual async Task DeleteByFilterAsync(string correlationId, FilterDefinition<T> filterDefinition)
         {
             var result = await _collection.DeleteManyAsync(filterDefinition);
@@ -310,6 +493,11 @@ namespace PipServices.MongoDb.Persistence
             _logger.Trace(correlationId, $"Deleted {result.DeletedCount} from {_collection}");
         }
 
+        /// <summary>
+        /// Deletes multiple data items by their unique ids.
+        /// </summary>
+        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
+        /// <param name="ids">ids of data items to be deleted.</param>
         public virtual async Task DeleteByIdsAsync(string correlationId, K[] ids)
         {
             var filterDefinition = Builders<T>.Filter.In(x => x.Id, ids);

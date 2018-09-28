@@ -8,17 +8,55 @@ using PipServices.Components.Connect;
 
 namespace PipServices.MongoDb.Connect
 {
+    /// <summary>
+    /// Helper class that resolves MongoDB connection and credential parameters,
+    /// validates them and generates a connection URI.
+    /// 
+    /// It is able to process multiple connections to MongoDB cluster nodes.
+    /// 
+    /// ### Configuration parameters ###
+    /// 
+    /// connection(s):
+    /// discovery_key:               (optional) a key to retrieve the connection from IDiscovery
+    /// host:                        host name or IP address
+    /// port:                        port number (default: 27017)
+    /// database:                    database name
+    /// uri:                         resource URI or connection string with all parameters in it 
+    /// credential(s):
+    /// store_key:                   (optional) a key to retrieve the credentials from ICredentialStore
+    /// username:                    user name
+    /// password:                    user password
+    /// 
+    /// ### References ###
+    /// 
+    /// - *:discovery:*:*:1.0          (optional) IDiscovery services
+    /// - *:credential-store:*:*:1.0   (optional) Credential stores to resolve credentials
+    /// </summary>
     public class MongoDbConnectionResolver: IReferenceable, IConfigurable
     {
+        /// <summary>
+        /// The connections resolver.
+        /// </summary>
         protected ConnectionResolver _connectionResolver = new ConnectionResolver();
+        /// <summary>
+        /// The credentials resolver.
+        /// </summary>
         protected CredentialResolver _credentialResolver = new CredentialResolver();
 
+        /// <summary>
+        /// Sets references to dependent components.
+        /// </summary>
+        /// <param name="references">references to locate the component dependencies.</param>
         public void SetReferences(IReferences references)
         {
             _connectionResolver.SetReferences(references);
             _credentialResolver.SetReferences(references);
         }
 
+        /// <summary>
+        /// Configures component by passing configuration parameters.
+        /// </summary>
+        /// <param name="config">configuration parameters to be set.</param>
         public void Configure(ConfigParams config)
         {
             _connectionResolver.Configure(config, false);
@@ -127,6 +165,11 @@ namespace PipServices.MongoDb.Connect
             return uri;
         }
 
+        /// <summary>
+        /// Resolves MongoDB connection URI from connection and credential parameters.
+        /// </summary>
+        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
+        /// <returns>resolved URI.</returns>
         public async Task<string> ResolveAsync(string correlationId)
         {
             var connections = await _connectionResolver.ResolveAllAsync(correlationId);
