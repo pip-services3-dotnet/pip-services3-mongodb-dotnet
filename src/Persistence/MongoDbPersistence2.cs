@@ -23,12 +23,13 @@ namespace PipServices.MongoDb.Persistence
     /// 
     /// - collection:                  (optional) MongoDB collection name
     /// 
-    /// connection(s):    
+    /// connection(s):
     /// - discovery_key:             (optional) a key to retrieve the connection from <a href="https://rawgit.com/pip-services-dotnet/pip-services-components-dotnet/master/doc/api/interface_pip_services_1_1_components_1_1_connect_1_1_i_discovery.html">IDiscovery</a>
     /// - host:                      host name or IP address
     /// - port:                      port number (default: 27017)
     /// - uri:                       resource URI or connection string with all parameters in it
-    /// - credential(s):    
+    /// 
+    /// credential(s):
     /// - store_key:                 (optional) a key to retrieve the credentials from <a href="https://rawgit.com/pip-services-dotnet/pip-services-components-dotnet/master/doc/api/interface_pip_services_1_1_components_1_1_auth_1_1_i_credential_store.html">ICredentialStore</a>
     /// - username:                  (optional) user name
     /// - password:                  (optional) user password
