@@ -18,32 +18,34 @@ namespace PipServices.MongoDb.Persistence
     /// This is the most basic persistence component that is only
     /// able to store data items of any type.Specific CRUD operations 
     /// over the data items must be implemented in child classes by 
-    /// accessing this._collection or this._model properties.
+    /// accessing <c>this._collection</c> or <c>this._model</c> properties.
     /// 
     /// ### Configuration parameters ###
     /// 
-    /// collection:                  (optional) MongoDB collection name
+    /// - collection:                  (optional) MongoDB collection name
+    /// 
     /// connection(s):    
-    /// discovery_key:             (optional) a key to retrieve the connection from IDiscovery
-    /// host:                      host name or IP address
-    /// port:                      port number (default: 27017)
-    /// uri:                       resource URI or connection string with all parameters in it
-    /// credential(s):    
-    /// store_key:                 (optional) a key to retrieve the credentials from ICredentialStore
-    /// username:                  (optional) user name
-    /// password:                  (optional) user password
+    /// - discovery_key:             (optional) a key to retrieve the connection from <a href="https://rawgit.com/pip-services-dotnet/pip-services-components-dotnet/master/doc/api/interface_pip_services_1_1_components_1_1_connect_1_1_i_discovery.html">IDiscovery</a>
+    /// - host:                      host name or IP address
+    /// - port:                      port number (default: 27017)
+    /// - uri:                       resource URI or connection string with all parameters in it
+    /// - credential(s):    
+    /// - store_key:                 (optional) a key to retrieve the credentials from <a href="https://rawgit.com/pip-services-dotnet/pip-services-components-dotnet/master/doc/api/interface_pip_services_1_1_components_1_1_auth_1_1_i_credential_store.html">ICredentialStore</a>
+    /// - username:                  (optional) user name
+    /// - password:                  (optional) user password
+    /// 
     /// options:
-    /// max_pool_size:             (optional) maximum connection pool size (default: 2)
-    /// keep_alive:                (optional) enable connection keep alive (default: true)
-    /// connect_timeout:           (optional) connection timeout in milliseconds (default: 5 sec)
-    /// auto_reconnect:            (optional) enable auto reconnection (default: true)
-    /// max_page_size:             (optional) maximum page size (default: 100)
-    /// debug:                     (optional) enable debug output (default: false).
+    /// - max_pool_size:             (optional) maximum connection pool size (default: 2)
+    /// - keep_alive:                (optional) enable connection keep alive (default: true)
+    /// - connect_timeout:           (optional) connection timeout in milliseconds (default: 5 sec)
+    /// - auto_reconnect:            (optional) enable auto reconnection (default: true)
+    /// - max_page_size:             (optional) maximum page size (default: 100)
+    /// - debug:                     (optional) enable debug output (default: false).
     /// 
     /// ### References ###
     /// 
-    /// - *:logger:*:*:1.0           (optional) ILogger components to pass log messages
-    /// - *:discovery:*:*:1.0        (optional) IDiscovery services
+    /// - *:logger:*:*:1.0           (optional) <a href="https://rawgit.com/pip-services-dotnet/pip-services-components-dotnet/master/doc/api/interface_pip_services_1_1_components_1_1_log_1_1_i_logger.html">ILogger</a> components to pass log messages
+    /// - *:discovery:*:*:1.0        (optional) <a href="https://rawgit.com/pip-services-dotnet/pip-services-components-dotnet/master/doc/api/interface_pip_services_1_1_components_1_1_connect_1_1_i_discovery.html">IDiscovery</a> services
     /// - *:credential-store:*:*:1.0 (optional) Credential stores to resolve credentials
     /// </summary>
     /// <typeparam name="T">the class type</typeparam>

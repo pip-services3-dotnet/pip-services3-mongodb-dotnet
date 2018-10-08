@@ -158,15 +158,33 @@ Private Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Abstract persistence component that stores data in MongoDB and is based using Mongoose object relational mapping. </p>
-<p>This is the most basic persistence component that is only able to store data items of any type.Specific CRUD operations over the data items must be implemented in child classes by accessing this._collection or this._model properties.</p>
+<p>This is the most basic persistence component that is only able to store data items of any type.Specific CRUD operations over the data items must be implemented in child classes by accessing <code>this._collection</code> or <code>this._model</code> properties.</p>
 <h3>Configuration parameters</h3>
-<p>collection: (optional) MongoDB collection name connection(s): <br />
-discovery_key: (optional) a key to retrieve the connection from IDiscovery host: host name or IP address port: port number (default: 27017) uri: resource URI or connection string with all parameters in it credential(s): <br />
-store_key: (optional) a key to retrieve the credentials from ICredentialStore username: (optional) user name password: (optional) user password options: max_pool_size: (optional) maximum connection pool size (default: 2) keep_alive: (optional) enable connection keep alive (default: true) connect_timeout: (optional) connection timeout in milliseconds (default: 5 sec) auto_reconnect: (optional) enable auto reconnection (default: true) max_page_size: (optional) maximum page size (default: 100) debug: (optional) enable debug output (default: false).</p>
+<ul>
+<li>collection: (optional) MongoDB collection name</li>
+</ul>
+<p>connection(s): <br />
+- discovery_key: (optional) a key to retrieve the connection from <a href="https://rawgit.com/pip-services-dotnet/pip-services-components-dotnet/master/doc/api/interface_pip_services_1_1_components_1_1_connect_1_1_i_discovery.html">IDiscovery</a></p><ul>
+<li>host: host name or IP address</li>
+<li>port: port number (default: 27017)</li>
+<li>uri: resource URI or connection string with all parameters in it</li>
+<li>credential(s): <br />
+- store_key: (optional) a key to retrieve the credentials from <a href="https://rawgit.com/pip-services-dotnet/pip-services-components-dotnet/master/doc/api/interface_pip_services_1_1_components_1_1_auth_1_1_i_credential_store.html">ICredentialStore</a></li>
+<li>username: (optional) user name</li>
+<li>password: (optional) user password</li>
+</ul>
+<p>options:</p><ul>
+<li>max_pool_size: (optional) maximum connection pool size (default: 2)</li>
+<li>keep_alive: (optional) enable connection keep alive (default: true)</li>
+<li>connect_timeout: (optional) connection timeout in milliseconds (default: 5 sec)</li>
+<li>auto_reconnect: (optional) enable auto reconnection (default: true)</li>
+<li>max_page_size: (optional) maximum page size (default: 100)</li>
+<li>debug: (optional) enable debug output (default: false).</li>
+</ul>
 <h3>References</h3>
 <ul>
-<li>*:logger:*:*:1.0 (optional) ILogger components to pass log messages</li>
-<li>*:discovery:*:*:1.0 (optional) IDiscovery services</li>
+<li>*:logger:*:*:1.0 (optional) <a href="https://rawgit.com/pip-services-dotnet/pip-services-components-dotnet/master/doc/api/interface_pip_services_1_1_components_1_1_log_1_1_i_logger.html">ILogger</a> components to pass log messages</li>
+<li>*:discovery:*:*:1.0 (optional) <a href="https://rawgit.com/pip-services-dotnet/pip-services-components-dotnet/master/doc/api/interface_pip_services_1_1_components_1_1_connect_1_1_i_discovery.html">IDiscovery</a> services</li>
 <li>*:credential-store:*:*:1.0 (optional) Credential stores to resolve credentials </li>
 </ul>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
