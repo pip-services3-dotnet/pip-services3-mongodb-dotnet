@@ -1,6 +1,6 @@
 {
-    "name": "pip-services-mongodb",
+    "name": "pip-services3-mongodb",
     "registry": "pipdevs",
-    "version": "3.0.3",
+    "version": "3.0.4",
     "build": "0"
 }

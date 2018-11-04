@@ -4,9 +4,9 @@ using System.Runtime.Serialization;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-using PipServices.Commons.Data;
+using PipServices3.Commons.Data;
 
-namespace PipServices.MongoDb.Persistence
+namespace PipServices3.MongoDb.Persistence
 {
     public enum DummyType : int
     {

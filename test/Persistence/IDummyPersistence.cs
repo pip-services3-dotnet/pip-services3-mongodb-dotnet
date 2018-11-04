@@ -1,11 +1,11 @@
 ﻿using MongoDB.Driver;
 
-using PipServices.Commons.Data;
+using PipServices3.Commons.Data;
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace PipServices.MongoDb.Persistence
+namespace PipServices3.MongoDb.Persistence
 {
     public interface IDummyPersistence
     {

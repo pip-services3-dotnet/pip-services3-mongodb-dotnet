@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 
 using MongoDB.Driver;
 
-using PipServices.Commons.Data;
+using PipServices3.Commons.Data;
 
-namespace PipServices.MongoDb.Persistence
+namespace PipServices3.MongoDb.Persistence
 {
     public class MongoDbDummyPersistence : IdentifiableMongoDbPersistence<Dummy, string>, IDummyPersistence
     {

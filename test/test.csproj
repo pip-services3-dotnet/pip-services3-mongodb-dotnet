@@ -5,9 +5,9 @@
 
     <IsPackable>false</IsPackable>
 
-    <AssemblyName>PipServices.MongoDb.Test</AssemblyName>
+    <AssemblyName>PipServices3.MongoDb.Test</AssemblyName>
 
-    <RootNamespace>PipServices.MongoDb</RootNamespace>
+    <RootNamespace>PipServices3.MongoDb</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">

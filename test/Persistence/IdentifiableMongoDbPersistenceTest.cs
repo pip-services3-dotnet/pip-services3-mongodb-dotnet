@@ -1,10 +1,10 @@
 ﻿using System;
 
-using PipServices.Commons.Config;
+using PipServices3.Commons.Config;
 
 using Xunit;
 
-namespace PipServices.MongoDb.Persistence
+namespace PipServices3.MongoDb.Persistence
 {
     [Collection("Sequential")]
     public sealed class IdentifiableMongoDbPersistenceTest : IDisposable

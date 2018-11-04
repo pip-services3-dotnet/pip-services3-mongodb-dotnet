@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace PipServices.MongoDb.Persistence
+namespace PipServices3.MongoDb.Persistence
 {
     [DataContract]
     public class InnerDummy

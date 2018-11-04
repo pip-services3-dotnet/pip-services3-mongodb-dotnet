@@ -7,7 +7,7 @@
 
 ## <a name="1.1.0-1.1.32"></a> 1.1.0-1.1.32 (2018-07-23)
 
-* Moved MockDb persistence to PipServices.Data
+* Moved MockDb persistence to PipServices3.Data
 
 ### Features
 * **cache** Added Memcached and Redis clients

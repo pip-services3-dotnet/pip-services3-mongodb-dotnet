@@ -4,10 +4,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Driver;
-using PipServices.Commons.Data;
+using PipServices3.Commons.Data;
 using Xunit;
 
-namespace PipServices.MongoDb.Persistence
+namespace PipServices3.MongoDb.Persistence
 {
     public class PersistenceFixture
     {
