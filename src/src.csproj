@@ -6,13 +6,13 @@
     <RootNamespace>PipServices3.MongoDb</RootNamespace>
     <ApplicationIcon />
     <Win32Resource />
-    <Version>3.0.4</Version>
+    <Version>3.0.5</Version>
     <Authors>Sergey Seroukhov, Alex Mazur</Authors>
     <Copyright>Conceptual Vision Consulting LLC. 2017-2018</Copyright>
     <Description>MongoDB components for Pip.Services in .NET</Description>
     <Company>Conceptual Vision Consulting LLC.</Company>
     <Product>PipServices3.MongoDb</Product>
-    <PackageLicenseUrl>http://opensource.org/licenses/MIT</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/pip-services3-dotnet/pip-services3-mongodb-dotnet</PackageProjectUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/pip-services/pip-services/master/design/Icon.png</PackageIconUrl>
     <PackageTags>PipServices V3 microservices toolkit</PackageTags>
@@ -30,8 +30,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MongoDB.Driver" Version="2.7.0" />
-    <PackageReference Include="PipServices3.Commons" Version="3.0.6" />
-    <PackageReference Include="PipServices3.Components" Version="3.0.4" />
+    <PackageReference Include="PipServices3.Commons" Version="3.0.13" />
+    <PackageReference Include="PipServices3.Components" Version="3.0.6" />
     <PackageReference Include="PipServices3.Data" Version="3.0.2" />
   </ItemGroup>
 </Project>
