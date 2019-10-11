@@ -4,9 +4,12 @@ using Xunit;
 
 namespace PipServices3.MongoDb.Persistence
 {
+    /// <summary>
+    /// Unit tests for the <c>MongoDbPersistenceTest</c> class
+    /// </summary>
     public class MongoDbPersistenceTest
     {
-        private static MongoDbDummyPersistence Db { get; } = new MongoDbDummyPersistence();
+        private MongoDbDummyPersistence Db { get; }
 
         private string mongoUri;
         private string mongoHost;
@@ -15,6 +18,8 @@ namespace PipServices3.MongoDb.Persistence
 
         public MongoDbPersistenceTest()
         {
+            Db = new MongoDbDummyPersistence();
+
             mongoUri = Environment.GetEnvironmentVariable("MONGO_URI");
             mongoHost = Environment.GetEnvironmentVariable("MONGO_HOST") ?? "localhost";
             mongoPort = Environment.GetEnvironmentVariable("MONGO_PORT") ?? "27017";
@@ -46,6 +51,8 @@ namespace PipServices3.MongoDb.Persistence
         [Fact]
         public void TestOpenAsync_Failure()
         {
+            Db.CloseAsync(null).Wait();
+
             Db.Configure(ConfigParams.FromTuples(
                 "connection.uri", mongoUri,
                 "connection.host", mongoHost,

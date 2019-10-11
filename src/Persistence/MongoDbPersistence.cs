@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using MongoDB.Driver;
+using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Servers;
 using PipServices3.Commons.Config;
 using PipServices3.Commons.Errors;
@@ -185,20 +186,26 @@ namespace PipServices3.MongoDb.Persistence
             // For mongo to register an open connection, an operation has to be applied to the client
             _connection.ListDatabases();
 
-            // Check that each server in the cluster is connected
-            foreach (var server in _connection.Cluster.Description.Servers)
-            {
-                if (server.State == ServerState.Disconnected)
-                {
-                    _logger.Trace(null, "Server with ServerId {0} is disconnected", new[] { server.ServerId });
-                    return false;
-                }
-            }
+            // DEV NOTE
+            // We can check for connectivity to the entire cluster, however this may be overkill
+            // and may generate false positives if one server in the cluster has an issue.
+            // Mongo clusters require at least 3 nodes to function correctly.
+            // For now we will just check the state of the cluster.
 
-            return true;
+            //// Check that each server in the cluster is connected
+            //foreach (var server in _connection.Cluster.Description.Servers)
+            //{
+            //    if (server.State == ServerState.Disconnected)
+            //    {
+            //        _logger.Trace(null, "Server with ServerId {0} is disconnected", new[] { server.ServerId });
+            //        return false;
+            //    }
+            //}
+
+            //return true;
 
             // Check that the cluster is connected
-            //return _connection.Cluster.Description.State == ClusterState.Connected;
+            return _connection.Cluster.Description.State == ClusterState.Connected;
         }
 
         /// <summary>
