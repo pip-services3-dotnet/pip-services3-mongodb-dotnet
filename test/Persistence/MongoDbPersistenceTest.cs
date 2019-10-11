@@ -7,6 +7,7 @@ namespace PipServices3.MongoDb.Persistence
     /// <summary>
     /// Unit tests for the <c>MongoDbPersistenceTest</c> class
     /// </summary>
+    [Collection("Sequential")]
     public class MongoDbPersistenceTest
     {
         private MongoDbDummyPersistence Db { get; }
