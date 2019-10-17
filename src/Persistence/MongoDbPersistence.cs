@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using MongoDB.Driver;
+using MongoDB.Driver.Core.Clusters;
+using MongoDB.Driver.Core.Servers;
 using PipServices3.Commons.Config;
 using PipServices3.Commons.Errors;
 using PipServices3.Commons.Refer;
@@ -93,11 +95,6 @@ namespace PipServices3.MongoDb.Persistence
     public class MongoDbPersistence<T> : IReferenceable, IReconfigurable, IOpenable, ICleanable
     {
         private ConfigParams _defaultConfig = ConfigParams.FromTuples(
-            //"connection.type", "mongodb",
-            //"connection.database", "test",
-            //"connection.host", "localhost",
-            //"connection.port", 27017,
-
             "options.poll_size", 4,
             "options.keep_alive", 1,
             "options.connect_timeout", 5000,
@@ -186,7 +183,29 @@ namespace PipServices3.MongoDb.Persistence
         /// <returns>true if the component has been opened and false otherwise.</returns>
         public virtual bool IsOpen()
         {
-            return _collection != null;
+            // For mongo to register an open connection, an operation has to be applied to the client
+            _connection.ListDatabases();
+
+            // DEV NOTE
+            // We can check for connectivity to the entire cluster, however this may be overkill
+            // and may generate false positives if one server in the cluster has an issue.
+            // Mongo clusters require at least 3 nodes to function correctly.
+            // For now we will just check the state of the cluster.
+
+            //// Check that each server in the cluster is connected
+            //foreach (var server in _connection.Cluster.Description.Servers)
+            //{
+            //    if (server.State == ServerState.Disconnected)
+            //    {
+            //        _logger.Trace(null, "Server with ServerId {0} is disconnected", new[] { server.ServerId });
+            //        return false;
+            //    }
+            //}
+
+            //return true;
+
+            // Check that the cluster is connected
+            return _connection.Cluster.Description.State == ClusterState.Connected;
         }
 
         /// <summary>
@@ -264,7 +283,10 @@ namespace PipServices3.MongoDb.Persistence
                 _database = _connection.GetDatabase(databaseName);
                 _collection = _database.GetCollection<T>(_collectionName);
 
-                _logger.Debug(correlationId, "Connected to mongodb database {0}, collection {1}", databaseName, _collectionName);
+                if (IsOpen())
+                    _logger.Info(correlationId, "Connected to mongodb database {0}, collection {1}", databaseName, _collectionName);
+                else
+                    throw new Exception("Connection to mongodb failed.");
             }
             catch (Exception ex)
             {
