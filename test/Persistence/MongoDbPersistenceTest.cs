@@ -49,20 +49,20 @@ namespace PipServices3.MongoDb.Persistence
             Assert.True(actual);
         }
 
-        [Fact]
-        public void TestOpenAsync_Failure()
-        {
-            Db.CloseAsync(null).Wait();
+        //[Fact]
+        //public void TestOpenAsync_Failure()
+        //{
+        //    Db.CloseAsync(null).Wait();
 
-            Db.Configure(ConfigParams.FromTuples(
-                "connection.uri", mongoUri,
-                "connection.host", mongoHost,
-                "connection.port", "1234",
-                "connection.database", mongoDatabase
-            ));
+        //    Db.Configure(ConfigParams.FromTuples(
+        //        "connection.uri", mongoUri,
+        //        "connection.host", mongoHost,
+        //        "connection.port", "1234",
+        //        "connection.database", mongoDatabase
+        //    ));
 
-            var ex = Assert.Throws<AggregateException>(() => Db.OpenAsync(null).Wait());
-            Assert.Equal("Connection to mongodb failed", ex.InnerException.Message);
-        }
+        //    var ex = Assert.Throws<AggregateException>(() => Db.OpenAsync(null).Wait());
+        //    Assert.Equal("Connection to mongodb failed", ex.InnerException.Message);
+        //}
     }
 }

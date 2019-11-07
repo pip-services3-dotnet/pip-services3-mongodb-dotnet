@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 using MongoDB.Driver;
-using MongoDB.Driver.Core.Clusters;
-using MongoDB.Driver.Core.Servers;
 using PipServices3.Commons.Config;
 using PipServices3.Commons.Errors;
 using PipServices3.Commons.Refer;
 using PipServices3.Commons.Run;
-using PipServices3.Components.Auth;
-using PipServices3.Components.Connect;
 using PipServices3.Components.Log;
 
 namespace PipServices3.MongoDb.Persistence
@@ -92,7 +88,7 @@ namespace PipServices3.MongoDb.Persistence
     /// Console.Out.WriteLine(item);                   // Result: { name: "ABC" }
     /// </code>
     /// </example>
-    public class MongoDbPersistence<T> : IReferenceable, IReconfigurable, IOpenable, ICleanable
+    public class MongoDbPersistence<T> : IReferenceable, IUnreferenceable, IReconfigurable, IOpenable, ICleanable
     {
         private ConfigParams _defaultConfig = ConfigParams.FromTuples(
             "options.poll_size", 4,
@@ -104,39 +100,48 @@ namespace PipServices3.MongoDb.Persistence
         );
 
         /// <summary>
+        /// The MongoDb connection.
+        /// </summary>
+        protected MongoDbConnection _connection;
+
+        /// <summary>
         /// The MongoDB colleciton name.
         /// </summary>
         protected string _collectionName;
-        /// <summary>
-        /// The connection resolver.
-        /// </summary>
-        protected ConnectionResolver _connectionResolver = new ConnectionResolver();
-        /// <summary>
-        /// The credential resolver.
-        /// </summary>
-        protected CredentialResolver _credentialResolver = new CredentialResolver();
-        /// <summary>
-        /// The configuration options.
-        /// </summary>
-        protected ConfigParams _options = new ConfigParams();
         
         /// <summary>
-        /// The MongoDB connection object.
+        /// The MongoDB client object.
         /// </summary>
-        protected MongoClient _connection;
+        protected MongoClient _client;
+
         /// <summary>
         /// The MongoDB database.
         /// </summary>
         protected IMongoDatabase _database;
+
         /// <summary>
         /// The MongoDB colleciton object.
         /// </summary>
         protected IMongoCollection<T> _collection;
 
         /// <summary>
+        /// The dependency resolver.
+        /// </summary>
+        protected DependencyResolver _dependencyResolver = new DependencyResolver(
+            ConfigParams.FromTuples(
+                "dependencies.connection", "pip-services:connection:mongodb:*:1.0"
+            )
+        );
+
+        /// <summary>
         /// The logger.
         /// </summary>
         protected CompositeLogger _logger = new CompositeLogger();
+
+        private ConfigParams _config;
+        private IReferences _references;
+        private bool _localConnection;
+        private bool _opened;
 
         /// <summary>
         /// Creates a new instance of the persistence component.
@@ -151,30 +156,56 @@ namespace PipServices3.MongoDb.Persistence
         }
 
         /// <summary>
-        /// Sets references to dependent components.
-        /// </summary>
-        /// <param name="references">references to locate the component dependencies.</param>
-        public virtual void SetReferences(IReferences references)
-        {
-            _logger.SetReferences(references);
-            _connectionResolver.SetReferences(references);
-            _credentialResolver.SetReferences(references);
-        }
-
-        /// <summary>
         /// Configures component by passing configuration parameters.
         /// </summary>
         /// <param name="config">configuration parameters to be set.</param>
         public virtual void Configure(ConfigParams config)
         {
-            config = config.SetDefaults(_defaultConfig);
-
-            _connectionResolver.Configure(config, true);
-            _credentialResolver.Configure(config, true);
+            _config = config.SetDefaults(_defaultConfig);
+            _dependencyResolver.Configure(_config);
 
             _collectionName = config.GetAsStringWithDefault("collection", _collectionName);
+        }
 
-            _options = _options.Override(config.GetSection("options"));
+        /// <summary>
+        /// Sets references to dependent components.
+        /// </summary>
+        /// <param name="references">references to locate the component dependencies.</param>
+        public virtual void SetReferences(IReferences references)
+        {
+            _references = references;
+
+            _logger.SetReferences(references);
+            _dependencyResolver.SetReferences(references);
+
+            // Get connection
+            _connection = _dependencyResolver.GetOneOptional("connection") as MongoDbConnection;
+            _localConnection = _connection == null;
+
+            // Or create a local one
+            if (_connection == null)
+                _connection = CreateLocalConnection();
+        }
+
+        /// <summary>
+        /// Unsets (clears) previously set references to dependent components.
+        /// </summary>
+        public virtual void UnsetReferences()
+        {
+            _connection = null;
+        }
+
+        private MongoDbConnection CreateLocalConnection()
+        {
+            var connection = new MongoDbConnection();
+
+            if (_config != null)
+                connection.Configure(_config);
+
+            if (_references != null)
+                connection.SetReferences(_references);
+
+            return connection;
         }
 
         /// <summary>
@@ -183,29 +214,7 @@ namespace PipServices3.MongoDb.Persistence
         /// <returns>true if the component has been opened and false otherwise.</returns>
         public virtual bool IsOpen()
         {
-            // For mongo to register an open connection, an operation has to be applied to the client
-            _connection.ListDatabases();
-
-            // DEV NOTE
-            // We can check for connectivity to the entire cluster, however this may be overkill
-            // and may generate false positives if one server in the cluster has an issue.
-            // Mongo clusters require at least 3 nodes to function correctly.
-            // For now we will just check the state of the cluster.
-
-            //// Check that each server in the cluster is connected
-            //foreach (var server in _connection.Cluster.Description.Servers)
-            //{
-            //    if (server.State == ServerState.Disconnected)
-            //    {
-            //        _logger.Trace(null, "Server with ServerId {0} is disconnected", new[] { server.ServerId });
-            //        return false;
-            //    }
-            //}
-
-            //return true;
-
-            // Check that the cluster is connected
-            return _connection.Cluster.Description.State == ClusterState.Connected;
+            return _opened;
         }
 
         /// <summary>
@@ -214,86 +223,23 @@ namespace PipServices3.MongoDb.Persistence
         /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
         public async virtual Task OpenAsync(string correlationId)
         {
-            var connection = await _connectionResolver.ResolveAsync(correlationId);
-            var credential = await _credentialResolver.LookupAsync(correlationId);
-            await OpenAsync(correlationId, connection, credential);
-        }
+            if (IsOpen()) return;
 
-        /// <summary>
-        /// Opens the component.
-        /// </summary>
-        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
-        /// <param name="connection">connection parameters.</param>
-        /// <param name="credential">credential parameters.</param>
-        /// <returns></returns>
-        public async Task OpenAsync(string correlationId, ConnectionParams connection, CredentialParams credential)
-        {
-            if (connection == null)
-                throw new ConfigException(correlationId, "NO_CONNECTION", "Database connection is not set");
-
-            var uri = connection.Uri;
-            var host = connection.Host;
-            var port = connection.Port;
-            var databaseName = connection.GetAsNullableString("database");
-
-            if (uri != null)
+            if (_connection == null)
             {
-                databaseName = MongoUrl.Create(uri).DatabaseName;
-            }
-            else
-            {
-                if (host == null)
-                    throw new ConfigException(correlationId, "NO_HOST", "Connection host is not set");
-
-                if (port == 0)
-                    throw new ConfigException(correlationId, "NO_PORT", "Connection port is not set");
-
-                if (databaseName == null)
-                    throw new ConfigException(correlationId, "NO_DATABASE", "Connection database is not set");
+                _connection = CreateLocalConnection();
+                _localConnection = true;
             }
 
-            _logger.Trace(correlationId, "Connecting to mongodb database {0}, collection {1}", databaseName, _collectionName);
+            if (_localConnection)
+                await _connection.OpenAsync(correlationId);
 
-            try
-            {
-                if (uri != null)
-                {
-                    _connection = new MongoClient(uri);
-                }
-                else
-                {
-                    var settings = new MongoClientSettings
-                    {
-                        Server = new MongoServerAddress(host, port),
-                        MaxConnectionPoolSize = _options.GetAsInteger("poll_size"),
-                        ConnectTimeout = _options.GetAsTimeSpan("connect_timeout"),
-                        //SocketTimeout =
-                        //    new TimeSpan(options.GetInteger("server.socketOptions.socketTimeoutMS")*
-                        //                 TimeSpan.TicksPerMillisecond)
-                    };
+            if (_connection.IsOpen() == false)
+                throw new InvalidStateException(correlationId, "CONNECTION_NOT_OPENED", "Database connection is not opened");
 
-                    if (credential.Username != null)
-                    {
-                        settings.Credential = MongoCredential.CreateCredential(databaseName, credential.Username, credential.Password);
-                    }
-
-                    _connection = new MongoClient(settings);
-                }
-
-                _database = _connection.GetDatabase(databaseName);
-                _collection = _database.GetCollection<T>(_collectionName);
-
-                if (IsOpen())
-                    _logger.Info(correlationId, "Connected to mongodb database {0}, collection {1}", databaseName, _collectionName);
-                else
-                    throw new Exception("Connection to mongodb failed.");
-            }
-            catch (Exception ex)
-            {
-                throw new ConnectionException(correlationId, "ConnectFailed", "Connection to mongodb failed", ex);
-            }
-
-            await Task.Delay(0);
+            _database = _connection.GetDatabase();
+            _collection = _database.GetCollection<T>(_collectionName);
+            _opened = true;
         }
 
         /// <summary>
@@ -302,7 +248,16 @@ namespace PipServices3.MongoDb.Persistence
         /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
         public virtual async Task CloseAsync(string correlationId)
         {
-            await Task.Delay(0);
+            if (IsOpen())
+            {
+                if (_connection == null)
+                    throw new InvalidStateException(correlationId, "NO_CONNECTION", "MongoDb connection is missing");
+
+                _opened = false;
+
+                if (_localConnection)
+                    await _connection.CloseAsync(correlationId);
+            }
         }
 
         /// <summary>
