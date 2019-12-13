@@ -46,17 +46,7 @@ namespace PipServices3.MongoDb.Persistence
     public class MongoDbConnection : IReferenceable, IReconfigurable, IOpenable
     {
         private ConfigParams _defaultConfig = ConfigParams.FromTuples(
-            //"connection.type", "mongodb",
-            //"connection.database", "test",
-            //"connection.host", "localhost",
-            //"connection.port", 27017,
-
-            //"options.poll_size", 4,
-            //"options.keep_alive", 1,
-            //"options.connect_timeout", 5000,
-            //"options.auto_reconnect", true,
-            //"options.max_page_size", 100,
-            //"options.debug", true
+            "options.sessions_supported", true
         );
 
         /// <summary>
@@ -88,6 +78,12 @@ namespace PipServices3.MongoDb.Persistence
         /// The logger.
         /// </summary>
         protected CompositeLogger _logger = new CompositeLogger();
+
+
+        /// <summary>
+        /// Determines if the database supports sessions or not
+        /// </summary>
+        private bool _areSessionsSupported = true;
 
         /// <summary>
         /// Creates a new instance of the connection component.
@@ -143,6 +139,8 @@ namespace PipServices3.MongoDb.Persistence
             _connectionResolver.Configure(config);
 
             _options = _options.Override(config.GetSection("options"));
+
+            _areSessionsSupported = _options.GetAsBooleanWithDefault("sessions_supported", true);
         }
 
         /// <summary>
@@ -162,7 +160,7 @@ namespace PipServices3.MongoDb.Persistence
         {
             var uri = await _connectionResolver.ResolveAsync(correlationId);
 
-            _logger.Trace(correlationId, "Connecting to mongodb");
+            _logger.Trace(correlationId, "Connecting to mongodb...");
 
             try
             {
@@ -171,7 +169,10 @@ namespace PipServices3.MongoDb.Persistence
                 _database = _connection.GetDatabase(_databaseName);
 
                 // Check if connection is alive
-                await _connection.StartSessionAsync();
+                if (_areSessionsSupported)
+                {
+                    await _connection.StartSessionAsync();
+                }
 
                 _logger.Debug(correlationId, "Connected to mongodb database {0}", _databaseName);
             }

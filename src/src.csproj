@@ -6,9 +6,9 @@
     <RootNamespace>PipServices3.MongoDb</RootNamespace>
     <ApplicationIcon />
     <Win32Resource />
-    <Version>3.0.5</Version>
+    <Version>3.1.1</Version>
     <Authors>Sergey Seroukhov, Alex Mazur</Authors>
-    <Copyright>Conceptual Vision Consulting LLC. 2017-2018</Copyright>
+    <Copyright>Conceptual Vision Consulting LLC. 2017-2019</Copyright>
     <Description>MongoDB components for Pip.Services in .NET</Description>
     <Company>Conceptual Vision Consulting LLC.</Company>
     <Product>PipServices3.MongoDb</Product>

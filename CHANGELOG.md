@@ -1,6 +1,6 @@
 # MongoDB components for Pip.Services in .NET Changelog
 
-## <a name="3.1.0"></a> 3.1.0 (2019-11-06)
+## <a name="3.1.0-3.1.1"></a> 3.1.0-3.1.1 (2019-12-13)
 
 ### Features
 * Added MongoDbConnection
