@@ -12,6 +12,7 @@ namespace PipServices3.MongoDb.Build
     public class DefaultMongoDbFactory : Factory
     {
         public static Descriptor Descriptor = new Descriptor("pip-services", "factory", "mongodb", "default", "1.0");
+        public static Descriptor Descriptor3 = new Descriptor("pip-services3", "factory", "mongodb", "default", "1.0");
         public static Descriptor MongoDbConnection3Descriptor = new Descriptor("pip-services3", "connection", "mongodb", "*", "1.0");
         public static Descriptor MongoDbConnectionDescriptor = new Descriptor("pip-services", "connection", "mongodb", "*", "1.0");
 
