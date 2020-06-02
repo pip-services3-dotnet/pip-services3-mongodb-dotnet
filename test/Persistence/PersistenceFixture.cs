@@ -122,11 +122,6 @@ namespace PipServices3.MongoDb.Persistence
             Assert.Equal(_dummy2.Key, dummy2.Key);
             Assert.Equal(_dummy2.Content, dummy2.Content);
 
-            //// Get all dummies
-            //var dummies = await _get.GetAllAsync(null);
-            //Assert.NotNull(dummies);
-            //Assert.Equal(2, dummies.Count());
-
             // Update the dummy
             dummy1.Content = "Updated Content 1";
             var dummy = await _persistence.UpdateAsync(null, dummy1);
@@ -167,11 +162,7 @@ namespace PipServices3.MongoDb.Persistence
                 await Task.Delay(TimeSpan.FromMilliseconds(10));
             }
 
-            //var dummiesResponce = await _get.GetAllAsync(null);
-            //Assert.NotNull(dummies);
-            //Assert.Equal(itemNumber, dummiesResponce.Count());
-            //Assert.Equal(itemNumber, dummiesResponce.Total);
-
+            
             dummies.AsParallel().ForAll(async x =>
             {
                 var updatedContent = "Updated Content " + x.Id;
@@ -186,36 +177,12 @@ namespace PipServices3.MongoDb.Persistence
                 Assert.Equal(updatedContent, dummy.Content);
             });
 
-            var taskList = new List<Task>();
-            foreach (var dummy in dummies)
+
+            dummies.AsParallel().ForAll(async x =>
             {
-                taskList.Add(AssertDelete(dummy));
-            }
-
-            Task.WaitAll(taskList.ToArray(), CancellationToken.None);
-
-            //count = 0;
-            //dummies.AsParallel().ForAll(async x =>
-            //{
-            //    // Delete the dummy
-            //    await _write.DeleteByIdAsync(null, x.Id);
-
-            //    // Try to get deleted dummy
-            //    var dummy = await _get.GetOneByIdAsync(null, x.Id);
-            //    Assert.Null(dummy);
-
-            //    Interlocked.Increment(ref count);
-            //});
-
-            //while (count < itemNumber)
-            //{
-            //    await Task.Delay(TimeSpan.FromMilliseconds(10));
-            //}
-
-            //dummiesResponce = await _get.GetAllAsync(null);
-            //Assert.NotNull(dummies);
-            //Assert.Equal(0, dummiesResponce.Count());
-            //Assert.Equal(0, dummiesResponce.Total);
+                // Delete the dummy
+                await AssertDelete(x);
+            });
         }
 
         public async Task TestGetByWrongIdAndProjection()
