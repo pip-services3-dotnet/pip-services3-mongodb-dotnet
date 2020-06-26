@@ -1,5 +1,10 @@
 # MongoDB components for Pip.Services in .NET Changelog
 
+## <a name="3.2.1"></a> 3.2.1 (2020-06-26)
+
+### Features
+* Implemented support backward compatibility
+
 ## <a name="3.2.0"></a> 3.2.0 (2020-05-26)
 
 ### Breaking Changes
