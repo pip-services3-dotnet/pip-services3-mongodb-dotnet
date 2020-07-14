@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
-using PipServices3.Commons.Config;
 using PipServices3.Commons.Convert;
 using PipServices3.Commons.Data;
 using PipServices3.Commons.Reflect;
@@ -104,8 +102,6 @@ namespace PipServices3.MongoDb.Persistence
         where T : IIdentifiable<K>
         where K : class
     {
-        protected int _maxPageSize = 100;
-
         protected const string InternalIdFieldName = "_id";
 
         /// <summary>
@@ -115,54 +111,6 @@ namespace PipServices3.MongoDb.Persistence
         public IdentifiableMongoDbPersistence(string collectionName)
             : base(collectionName)
         { }
-
-        /// <summary>
-        /// Configures component by passing configuration parameters.
-        /// </summary>
-        /// <param name="config">configuration parameters to be set.</param>
-        public override void Configure(ConfigParams config)
-        {
-            base.Configure(config);
-
-            _maxPageSize = config.GetAsIntegerWithDefault("options.max_page_size", _maxPageSize);
-        }
-
-        /// <summary>
-        /// Gets a page of data items retrieved by a given filter and sorted according to sort parameters.
-        /// 
-        /// This method shall be called by a public getPageByFilter method from child
-        /// class that receives FilterParams and converts them into a filter function.
-        /// </summary>
-        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
-        /// <param name="filterDefinition">(optional) a filter JSON object</param>
-        /// <param name="paging">(optional) paging parameters</param>
-        /// <param name="sortDefinition">(optional) sorting JSON object</param>
-        /// <returns>data page of results by filter.</returns>
-        public virtual async Task<DataPage<T>> GetPageByFilterAsync(string correlationId, FilterDefinition<T> filterDefinition,
-            PagingParams paging = null, SortDefinition<T> sortDefinition = null)
-        {
-            var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<T>();
-            var renderedFilter = filterDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
-
-            var query = _collection.Find(renderedFilter);
-            if (sortDefinition != null)
-                query = query.Sort(sortDefinition);
-
-            paging = paging ?? new PagingParams();
-            var skip = paging.GetSkip(0);
-            var take = paging.GetTake(_maxPageSize);
-
-            var count = paging.Total ? (long?)await query.CountDocumentsAsync() : null;
-            var items = await query.Skip((int)skip).Limit((int)take).ToListAsync();
-
-            _logger.Trace(correlationId, $"Retrieved {items.Count} from {_collection}");
-
-            return new DataPage<T>()
-            {
-                Data = items,
-                Total = count
-            };
-        }
 
         /// <summary>
         /// Gets a page of data items retrieved by a given filter and sorted according to sort parameters.
@@ -220,33 +168,6 @@ namespace PipServices3.MongoDb.Persistence
             _logger.Trace(correlationId, $"Retrieved {result.Total} from {_collection} with projection fields = '{StringConverter.ToString(projection)}'");
 
             return result;
-        }
-
-        /// <summary>
-        /// Gets a list of data items retrieved by a given filter and sorted according to sort parameters.
-        /// 
-        /// This method shall be called by a public getListByFilter method from child
-        /// class that receives FilterParams and converts them into a filter function.
-        /// </summary>
-        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
-        /// <param name="filterDefinition">(optional) a filter JSON object</param>
-        /// <param name="sortDefinition">(optional) sorting JSON object</param>
-        /// <returns></returns>
-        public virtual async Task<List<T>> GetListByFilterAsync(string correlationId, FilterDefinition<T> filterDefinition,
-            SortDefinition<T> sortDefinition = null)
-        {
-            var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<T>();
-            var renderedFilter = filterDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
-
-            var query = _collection.Find(renderedFilter);
-            if (sortDefinition != null)
-                query = query.Sort(sortDefinition);
-
-            var items = await query.ToListAsync();
-
-            _logger.Trace(correlationId, $"Retrieved {items.Count} from {_collection}");
-
-            return items;
         }
 
         /// <summary>
@@ -329,53 +250,18 @@ namespace PipServices3.MongoDb.Persistence
         }
 
         /// <summary>
-        /// Gets a random item from items that match to a given filter.
-        /// 
-        /// This method shall be called by a public getOneRandom method from child class
-        /// that receives FilterParams and converts them into a filter function.
-        /// </summary>
-        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
-        /// <param name="filterDefinition">(optional) a filter JSON object</param>
-        /// <returns>a random item by filter.</returns>
-        public virtual async Task<T> GetOneRandomAsync(string correlationId, FilterDefinition<T> filterDefinition)
-        {
-            var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<T>();
-            var renderedFilter = filterDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
-
-            var count = (int)_collection.CountDocuments(renderedFilter);
-
-            if (count <= 0)
-            {
-                _logger.Trace(correlationId, "Nothing found for filter {0}", renderedFilter.ToString());
-                return default(T);
-            }
-
-            var randomIndex = new Random().Next(0, count - 1);
-
-            var result = await _collection.Find(filterDefinition).Skip(randomIndex).FirstOrDefaultAsync();
-
-            _logger.Trace(correlationId, "Retrieved randomly from {0} with id = {1}", _collectionName, result.Id);
-
-            return result;
-        }
-
-        /// <summary>
         /// Creates a data item.
         /// </summary>
         /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
         /// <param name="item">an item to be created.</param>
         /// <returns>created item.</returns>
-        public virtual async Task<T> CreateAsync(string correlationId, T item)
+        public override async Task<T> CreateAsync(string correlationId, T item)
         {
             var identifiable = item as IStringIdentifiable;
             if (identifiable != null && item.Id == null)
                 ObjectWriter.SetProperty(item, nameof(item.Id), IdGenerator.NextLong());
 
-            await _collection.InsertOneAsync(item, null);
-
-            _logger.Trace(correlationId, "Created in {0} with id = {1}", _collectionName, item.Id);
-
-            return item;
+            return await base.CreateAsync(correlationId, item);
         }
 
         /// <summary>
@@ -478,21 +364,6 @@ namespace PipServices3.MongoDb.Persistence
             _logger.Trace(correlationId, "Deleted from {0} with id = {1}", _collectionName, id);
 
             return result;
-        }
-
-        /// <summary>
-        /// Deletes data items that match to a given filter.
-        /// 
-        /// This method shall be called by a public deleteByFilter method from child
-        /// class that receives FilterParams and converts them into a filter function.
-        /// </summary>
-        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
-        /// <param name="filterDefinition">(optional) a filter JSON object.</param>
-        public virtual async Task DeleteByFilterAsync(string correlationId, FilterDefinition<T> filterDefinition)
-        {
-            var result = await _collection.DeleteManyAsync(filterDefinition);
-
-            _logger.Trace(correlationId, $"Deleted {result.DeletedCount} from {_collection}");
         }
 
         /// <summary>

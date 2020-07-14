@@ -1,5 +1,10 @@
 # MongoDB components for Pip.Services in .NET Changelog
 
+## <a name="3.3.0"></a> 3.3.0 (2020-07-14) 
+
+### Features
+* Moved some CRUD operations from IdentifiableMongoDbPersistence to MongoDbPersistence
+
 ## <a name="3.2.1"></a> 3.2.1 (2020-06-26)
 
 ### Features
