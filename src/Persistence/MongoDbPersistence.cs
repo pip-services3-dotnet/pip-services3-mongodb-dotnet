@@ -14,7 +14,7 @@ namespace PipServices3.MongoDb.Persistence
 {
     /// <summary>
     /// Abstract persistence component that stores data in MongoDB
-    /// and is based using Mongoose object relational mapping.
+    /// using the official MongoDB driver.
     /// 
     /// This is the most basic persistence component that is only
     /// able to store data items of any type.Specific CRUD operations 
