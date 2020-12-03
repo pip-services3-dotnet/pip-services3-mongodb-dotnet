@@ -7,8 +7,8 @@ namespace PipServices3.MongoDb.Build
     /// <summary>
     /// Creates MongoDB components by their descriptors.
     /// </summary>
-    /// See <a href="https://rawgit.com/pip-services3-dotnet/pip-services3-components-dotnet/master/doc/api/class_pip_services_1_1_components_1_1_build_1_1_factory.html">Factory</a>, 
-    /// <a href="https://rawgit.com/pip-services3-dotnet/pip-services3-mongodb-dotnet/master/doc/api/class_pip_services_1_1_mongodb_1_1_persistence_1_1_mongo_db_connection.html">MongoDbConnection</a>
+    /// See <a href="https://pip-services3-dotnet.github.io/pip-services3-components-dotnet/class_pip_services_1_1_components_1_1_build_1_1_factory.html">Factory</a>, 
+    /// <a href="https://pip-services3-dotnet.github.io/pip-services3-mongodb-dotnet/class_pip_services3_1_1_mongo_db_1_1_persistence_1_1_mongo_db_connection.html">MongoDbConnection</a>
     public class DefaultMongoDbFactory : Factory
     {
         public static Descriptor Descriptor = new Descriptor("pip-services", "factory", "mongodb", "default", "1.0");
