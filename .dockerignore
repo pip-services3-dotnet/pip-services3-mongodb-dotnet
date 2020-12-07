@@ -5,11 +5,12 @@
 /doc
 /dist
 /obj
-/doc
-/docker
+/Dockerfile*
+/docker-compose*.yml
 /*.sh
 /*.ps1
 /*.nuspec
 /*.nupkg
 /*.userprefs
 /*.md
+/.github
