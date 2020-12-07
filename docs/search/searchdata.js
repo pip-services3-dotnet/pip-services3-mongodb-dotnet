@@ -1,11 +1,10 @@
 var indexSectionsWithContent =
 {
   0: "_cdgimoprsu",
-  1: "dimp",
+  1: "dim",
   2: "p",
   3: "cdgimorsu",
-  4: "_",
-  5: "dmp"
+  4: "_"
 };
 
 var indexSectionNames =
@@ -14,8 +13,7 @@ var indexSectionNames =
   1: "classes",
   2: "namespaces",
   3: "functions",
-  4: "variables",
-  5: "pages"
+  4: "variables"
 };
 
 var indexSectionLabels =
@@ -24,7 +22,6 @@ var indexSectionLabels =
   1: "Classes",
   2: "Namespaces",
   3: "Functions",
-  4: "Variables",
-  5: "Pages"
+  4: "Variables"
 };
 
