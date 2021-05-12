@@ -37,13 +37,13 @@ namespace PipServices3.MongoDb.Persistence
             Fixture = new PersistenceFixture(Db);
         }
 
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void TestCrudOperations()
         {
             Fixture?.TestCrudOperationsAsync().Wait();
         }
 
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void TestMultithreading()
         {
             Fixture?.TestMultithreading().Wait();
@@ -109,19 +109,19 @@ namespace PipServices3.MongoDb.Persistence
             Fixture?.TestGetPageByWrongProjection().Wait();
         }
 
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void It_Should_Modify_Object_With_Existing_Properties_By_Selected_Fields()
         {
             Fixture?.TestModifyExistingPropertiesBySelectedFields().Wait();
         }
 
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void It_Should_Modify_Object_With_Existing_Properties_By_Selected_Not_Changed_Fields()
         {
             Fixture?.TestModifyExistingPropertiesBySelectedNotChangedFields().Wait();
         }
 
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void It_Should_Modify_Object_With_Null_Properties_By_Selected_Fields()
         {
             Fixture?.TestModifyExistingPropertiesBySelectedFields().Wait();
@@ -157,7 +157,7 @@ namespace PipServices3.MongoDb.Persistence
             Fixture?.TestSearchWithinDeepNestedCollectionByFilterAndNullProjection().Wait();
         }
 
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void It_Should_Modify_Nested_Collection()
         {
             Fixture?.TestModifyNestedCollection().Wait();

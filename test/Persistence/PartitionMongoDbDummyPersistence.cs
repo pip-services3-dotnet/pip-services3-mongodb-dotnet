@@ -11,7 +11,7 @@ namespace PipServices3.MongoDb.Persistence
     public class PartitionMongoDbDummyPersistence : PartitionMongoDbPersistence<Dummy, string>, IDummyPersistence
     {
         public PartitionMongoDbDummyPersistence()
-            : base("dummies", "partition_key")
+            : base("dummies_ex", PartitionHelper.PartitionKey)
         {
         }
 
@@ -97,7 +97,7 @@ namespace PipServices3.MongoDb.Persistence
 
         protected override string GetPartitionKey(string id)
         {
-            return $"{_partitionKey}_{id}";
+            return PartitionHelper.GetValue(id);
         }
     }
 }

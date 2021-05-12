@@ -47,5 +47,8 @@ namespace PipServices3.MongoDb.Persistence
         [BsonElement("inner_dummies")]
         [DataMember(Name = "inner_dummies")]
         public List<InnerDummy> InnerDummies { get; set; } = new List<InnerDummy>();
+
+        [BsonElement("partition_key")]
+        public string PartitionKey { get { return PartitionHelper.GetValue(Id); } set { } }
     }
 }
