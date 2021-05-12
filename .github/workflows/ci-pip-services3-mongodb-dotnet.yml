@@ -1,4 +1,4 @@
-name: Pip.Services AWS toolkit in .NET
+name: Pip.Services MongoDb toolkit in .NET
 
 on: 
   push:
