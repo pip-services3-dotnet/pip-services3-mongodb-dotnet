@@ -131,6 +131,10 @@ namespace PipServices3.MongoDb.Persistence
             Assert.Equal(dummy1.Key, dummy.Key);
             Assert.Equal(dummy1.Content, dummy.Content);
 
+            // Get count dummies
+            var count = await _persistence.GetCountAsync(null, null);
+            Assert.Equal(2, count);
+
             // Delete the dummy
             await _persistence.DeleteByIdAsync(null, dummy1.Id);
 

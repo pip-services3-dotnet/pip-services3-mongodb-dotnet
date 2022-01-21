@@ -40,6 +40,11 @@ namespace PipServices3.MongoDb.Persistence
             return await GetOneByIdAsync(correlationId, id);
         }
 
+        public Task<long> GetCountAsync(string correlationId, FilterParams filterParams)
+        {
+            return GetCountByFilterAsync(correlationId, ComposeFilter(filterParams));
+        }
+
         public async Task<object> GetByIdAsync(string correlationId, string id, ProjectionParams projection)
         {
             return await GetOneByIdAsync(correlationId, id, projection);
