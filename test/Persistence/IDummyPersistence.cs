@@ -33,6 +33,7 @@ namespace PipServices3.MongoDb.Persistence
         Task<Dummy> ModifyByIdAsync(string correlationId, string id, UpdateDefinition<Dummy> updateDefinition);
         Task<Dummy> SetAsync(string correlationId, Dummy item);
         Task<Dummy> UpdateAsync(string correlationId, Dummy item);
+        Task<Dummy> UpdatePartiallyAsync(string correlationId, string id, AnyValueMap data);
     }
 }
 
