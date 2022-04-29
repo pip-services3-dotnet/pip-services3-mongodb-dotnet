@@ -343,6 +343,26 @@ namespace PipServices3.MongoDb.Persistence
         }
 
         /// <summary>
+        /// Gets a number of data items retrieved by a given filter.
+        /// This method shall be called by a public get_count_by_filter method from child class that
+        /// receives FilterParams and converts them into a filter function.
+        /// </summary>
+        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
+        /// <param name="filterDefinition">(optional) a filter JSON object</param>
+        /// <returns>a number of filtered items.</returns>
+        public virtual async Task<long> GetCountByFilterAsync(string correlationId, FilterDefinition<T> filterDefinition)
+        {
+            var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<T>();
+            var renderedFilter = filterDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
+
+            var count = await _collection.CountDocumentsAsync(renderedFilter);
+
+            _logger.Trace(correlationId, $"Counted {count} items in {_collectionName}");
+
+            return count;
+        } 
+
+        /// <summary>
         /// Gets a random item from items that match to a given filter.
         /// 
         /// This method shall be called by a public getOneRandom method from child class

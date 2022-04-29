@@ -1,5 +1,26 @@
 # <img src="https://uploads-ssl.webflow.com/5ea5d3315186cf5ec60c3ee4/5edf1c94ce4c859f2b188094_logo.svg" alt="Pip.Services Logo" width="200"> <br/> MongoDB components for .NET Changelog
 
+## <a name="3.5.1-3.5.2"></a> 3.5.1-3.5.2 (2022-01-21)
+
+### Features
+* **persistence** added GetCountByFilterAsync request
+* **persistence** added UpdatePartiallyAsync for IdentifiableMongoDbPersistence
+
+## <a name="3.4.0"></a> 3.4.0 (2021-09-01)
+
+### Breaking Changes
+* Migrate to .NET 5.0
+
+## <a name="3.4.0"></a> 3.4.0 (2021-06-11) 
+
+### Features
+* Updated references as PipServices3.Components have got minor changes
+
+## <a name="3.3.2"></a> 3.3.2 (2021-05-12) 
+
+### Features
+* Added PartitionMongoDbPersistence
+
 ## <a name="3.3.0"></a> 3.3.0 (2020-07-14) 
 
 ### Features

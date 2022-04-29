@@ -314,6 +314,36 @@ namespace PipServices3.MongoDb.Persistence
             return result;
         }
 
+        /// <summary>
+        /// Updates only few selected fields in a data item.
+        /// </summary>
+        /// <param name="correlationId">(optional) transaction id to trace execution through call chain.</param>
+        /// <param name="id">an id of data item to be updated.</param>
+        /// <param name="data">a map with fields to be updated.</param>
+        /// <returns>the updated item.</returns>
+        public virtual async Task<T> UpdatePartiallyAsync(string correlationId, K id, AnyValueMap data)
+        {
+            if (id == null)
+                return default(T);
+
+            var options = new FindOneAndUpdateOptions<T>
+            {
+                ReturnDocument = ReturnDocument.After,
+                IsUpsert = false
+            };
+
+            var builder = Builders<T>.Filter;
+            var filter = builder.Eq(x => x.Id, id);
+
+            var update = ComposeUpdate(data);
+            var result = await _collection.FindOneAndUpdateAsync(filter, update, options);
+
+            if (result != null)
+                _logger.Trace(correlationId, "Updated partially in {0} with id = {1}", _collectionName, id);
+
+            return result;
+        }
+
         public virtual async Task<T> ModifyAsync(string correlationId,
             FilterDefinition<T> filterDefinition, UpdateDefinition<T> updateDefinition)
         {

@@ -22,6 +22,7 @@ namespace PipServices3.MongoDb.Persistence
         Task<Dummy> DeleteByIdAsync(string correlationId, string id);
         Task DeleteByIdsAsync(string correlationId, string[] ids);
         Task<List<Dummy>> GetListByFilterAsync(string correlationId, FilterDefinition<Dummy> filterDefinition, SortDefinition<Dummy> sortDefinition = null);
+        Task<long> GetCountAsync(string correlationId, FilterParams filterParams);
         Task<List<Dummy>> GetListByIdsAsync(string correlationId, string[] ids);
         Task<Dummy> GetOneByIdAsync(string correlationId, string id);
         Task<object> GetOneByIdAsync(string correlationId, string id, ProjectionParams projection);
@@ -32,6 +33,7 @@ namespace PipServices3.MongoDb.Persistence
         Task<Dummy> ModifyByIdAsync(string correlationId, string id, UpdateDefinition<Dummy> updateDefinition);
         Task<Dummy> SetAsync(string correlationId, Dummy item);
         Task<Dummy> UpdateAsync(string correlationId, Dummy item);
+        Task<Dummy> UpdatePartiallyAsync(string correlationId, string id, AnyValueMap data);
     }
 }
 

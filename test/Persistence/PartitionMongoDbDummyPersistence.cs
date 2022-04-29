@@ -8,10 +8,10 @@ using PipServices3.Commons.Data;
 
 namespace PipServices3.MongoDb.Persistence
 {
-    public class MongoDbDummyPersistence : IdentifiableMongoDbPersistence<Dummy, string>, IDummyPersistence
+    public class PartitionMongoDbDummyPersistence : PartitionMongoDbPersistence<Dummy, string>, IDummyPersistence
     {
-        public MongoDbDummyPersistence()
-            : base("dummies")
+        public PartitionMongoDbDummyPersistence()
+            : base("dummies_ex", PartitionHelper.PartitionKey)
         {
         }
 
@@ -98,6 +98,11 @@ namespace PipServices3.MongoDb.Persistence
             }
 
             return value.Split(',').Length > 1;
+        }
+
+        protected override string GetPartitionKey(string id)
+        {
+            return PartitionHelper.GetValue(id);
         }
     }
 }

@@ -1,6 +1,6 @@
 {
     "name": "pip-services3-mongodb-dotnet",
     "registry": "pipdevs",
-    "version": "3.3.0",
+    "version": "3.5.2",
     "build": 0
 }
