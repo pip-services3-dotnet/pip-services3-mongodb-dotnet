@@ -21,5 +21,5 @@ docker build -f "$PSScriptRoot/docker/Dockerfile.docs" -t $docImage .
 
 # Create and copy compiled files, then destroy the container
 docker create --name $container $docImage
-docker cp "$($container):/app/docs/html/." "$PSScriptRoot/docs"
+docker cp "$($container):/app/docs/." "$PSScriptRoot/docs"
 docker rm $container
