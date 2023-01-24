@@ -24,7 +24,8 @@ jobs:
       shell: bash
       run: |
         rm -rf script-delivery-ps
-        git clone ${{ secrets.SCRIPTS_DELIVERY_PS_GIT_URL }} script-delivery-ps
+        git clone ${{ secrets.SCRIPTS_DELIVERY_PS_GIT_URL }} eic-templates-cicd-ps
+        cp -r eic-templates-cicd-ps/script-delivery-ps script-delivery-ps
 
     - name: Execute increment script
       shell: bash
