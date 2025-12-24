@@ -128,7 +128,7 @@ namespace PipServices3.MongoDb.Persistence
             PagingParams paging = null, SortDefinition<T> sortDefinition = null, ProjectionParams projection = null)
         {
             var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<T>();
-            var renderedFilter = filterDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
+            var renderedFilter = filterDefinition.Render(new RenderArgs<T>(documentSerializer, BsonSerializer.SerializerRegistry));
 
             var query = _collection.Find(renderedFilter);
             if (sortDefinition != null)
@@ -182,7 +182,7 @@ namespace PipServices3.MongoDb.Persistence
             var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<T>();
             var builder = Builders<T>.Filter;
             var filterDefinition = builder.In(x => x.Id, ids);
-            var renderedFilter = filterDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
+            var renderedFilter = filterDefinition.Render(new RenderArgs<T>(documentSerializer, BsonSerializer.SerializerRegistry));
 
             var query = _collection.Find(renderedFilter);
             var items = await query.ToListAsync();

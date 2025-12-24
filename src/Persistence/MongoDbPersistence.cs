@@ -293,7 +293,7 @@ namespace PipServices3.MongoDb.Persistence
             PagingParams paging = null, SortDefinition<T> sortDefinition = null)
         {
             var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<T>();
-            var renderedFilter = filterDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
+            var renderedFilter = filterDefinition.Render(new RenderArgs<T>(documentSerializer, BsonSerializer.SerializerRegistry));
 
             var query = _collection.Find(renderedFilter);
             if (sortDefinition != null)
@@ -329,7 +329,7 @@ namespace PipServices3.MongoDb.Persistence
             SortDefinition<T> sortDefinition = null)
         {
             var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<T>();
-            var renderedFilter = filterDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
+            var renderedFilter = filterDefinition.Render(new RenderArgs<T>(documentSerializer, BsonSerializer.SerializerRegistry));
 
             var query = _collection.Find(renderedFilter);
             if (sortDefinition != null)
@@ -353,7 +353,7 @@ namespace PipServices3.MongoDb.Persistence
         public virtual async Task<long> GetCountByFilterAsync(string correlationId, FilterDefinition<T> filterDefinition)
         {
             var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<T>();
-            var renderedFilter = filterDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
+            var renderedFilter = filterDefinition.Render(new RenderArgs<T>(documentSerializer, BsonSerializer.SerializerRegistry));
 
             var count = await _collection.CountDocumentsAsync(renderedFilter);
 
@@ -374,7 +374,7 @@ namespace PipServices3.MongoDb.Persistence
         public virtual async Task<T> GetOneRandomAsync(string correlationId, FilterDefinition<T> filterDefinition)
         {
             var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<T>();
-            var renderedFilter = filterDefinition.Render(documentSerializer, BsonSerializer.SerializerRegistry);
+            var renderedFilter = filterDefinition.Render(new RenderArgs<T>(documentSerializer, BsonSerializer.SerializerRegistry));
 
             var count = (int)_collection.CountDocuments(renderedFilter);
 
