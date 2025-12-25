@@ -154,24 +154,14 @@ namespace PipServices3.MongoDb.Persistence
                 dummies.Add(new Dummy() {Id = i.ToString(), Key = "Key " + i, Content = "Content " + i});
             }
 
-            var count = 0;
-            dummies.AsParallel().ForAll(async x =>
-            {
-                await _persistence.CreateAsync(null, x);
-                Interlocked.Increment(ref count);
-            });
+            // Create items concurrently and wait for all to complete
+            var createTasks = dummies.Select(x => _persistence.CreateAsync(null, x)).ToArray();
+            await Task.WhenAll(createTasks);
 
-            while (count < itemNumber)
-            {
-                await Task.Delay(TimeSpan.FromMilliseconds(10));
-            }
-
-            
-            dummies.AsParallel().ForAll(async x =>
+            // Update items concurrently and await results
+            var updateTasks = dummies.Select(async x =>
             {
                 var updatedContent = "Updated Content " + x.Id;
-
-                // Update the dummy
                 x.Content = updatedContent;
                 var dummy = await _persistence.UpdateAsync(null, x);
 
@@ -179,14 +169,13 @@ namespace PipServices3.MongoDb.Persistence
                 Assert.Equal(x.Id, dummy.Id);
                 Assert.Equal(x.Key, dummy.Key);
                 Assert.Equal(updatedContent, dummy.Content);
-            });
+            }).ToArray();
 
+            await Task.WhenAll(updateTasks);
 
-            dummies.AsParallel().ForAll(async x =>
-            {
-                // Delete the dummy
-                await AssertDelete(x);
-            });
+            // Delete items concurrently
+            var deleteTasks = dummies.Select(x => AssertDelete(x)).ToArray();
+            await Task.WhenAll(deleteTasks);
         }
 
         public async Task TestGetByWrongIdAndProjection()
